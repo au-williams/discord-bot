@@ -82,6 +82,9 @@ export default class Config {
       // reassign JSON data from the host on reinitialization //
       // ---------------------------------------------------- //
 
+      const rootConfig = fs.readJsonSync("config.json");
+      Object.assign(this, rootConfig);
+
       this.jsonData = fs.readJsonSync(this.filepath);
       Object.assign(this, this.jsonData);
 

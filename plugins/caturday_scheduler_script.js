@@ -1,6 +1,7 @@
 import { Cron } from "croner";
 import { EmbedBuilder } from "discord.js";
 import { filterChannelMessages, findChannelMessage } from "../index.js";
+import { getAverageColorFromUrl } from "../shared/helpers/object.js";
 import { getCronOptions } from "../shared/helpers/object.js";
 import { getLeastFrequentlyOccurringStrings } from "../shared/helpers/array.js";
 import Config from "../shared/config.js";
@@ -30,7 +31,6 @@ export const onClientReady = async ({ client }) => {
     await logger.initialize(client);
 
     // start announcement and maintenance Cron jobs
-
     const { cron_job_announcement_pattern, cron_job_maintenance_pattern } = config;
     Cron(cron_job_maintenance_pattern, getCronOptions(logger), cronJobMaintenance()).trigger();
     const cronEntrypoint = Cron(cron_job_announcement_pattern, getCronOptions(logger), () => cronJobAnnouncement(client));
@@ -85,6 +85,7 @@ async function cronJobAnnouncement(client) {
 
     const embed = new EmbedBuilder().setImage(attachmentImageUrl);
     embed.setAuthor({ iconURL: uploaderAvatarUrl, name: uploaderName });
+    embed.setColor((await getAverageColorFromUrl(uploaderAvatarUrl)).hex)
     embed.setFooter({ text: "Happy Caturday! 🐱" });
 
     const channel = await client.channels.fetch(config.discord_announcement_channel_id);
@@ -118,8 +119,14 @@ async function cronJobMaintenance() {
       const isObsoleteName = embedData.author.name !== uploaderName;
       if (!isObsoleteAvatarUrl && !isObsoleteName) continue;
 
+      const averageAvatarColor = isObsoleteAvatarUrl
+        ? (await getAverageColorFromUrl(uploaderAvatarUrl)).hex
+        : embedData.color;
+
       const embed = EmbedBuilder.from(message.embeds[0]);
       embed.setAuthor({ iconURL: uploaderAvatarUrl, name: uploaderName });
+      embed.setColor(averageAvatarColor);
+
       await message.edit({ embeds: [embed] });
     }
   }

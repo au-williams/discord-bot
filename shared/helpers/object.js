@@ -1,5 +1,12 @@
+import { getAverageColor } from 'fast-average-color-node';
 import { getIsNumeric } from "./string.js";
+import { nanoid } from 'nanoid'
 import { scheduledJobs } from "croner";
+import { setTimeout } from "timers/promises";
+import download from "download";
+import fs from "fs-extra";
+
+const { temp_directory } = fs.readJsonSync("config.json");
 
 /**
  * The retry policy for the `fetch-retry` NPM package
@@ -8,6 +15,19 @@ export const fetchRetryPolicy = {
   retries: 10,
   retryDelay: 1000,
   retryOn: [501, 502, 503]
+}
+
+/**
+ * Create a temporary download of the destination file to process with getAverageColor
+ * @param {String} url
+ */
+export const getAverageColorFromUrl = async url => {
+  const tempDownloadDirectory = `${temp_directory}\\${nanoid()}`;
+  await download(url, tempDownloadDirectory);
+  const tempDownloadFilename = fs.readdirSync(tempDownloadDirectory)[0];
+  const tempDownloadFilepath = `${tempDownloadDirectory}\\${tempDownloadFilename}`;
+  // setTimeout(5000).then(() => fs.removeSync(tempDownloadDirectory));
+  return await getAverageColor(tempDownloadFilepath);
 }
 
 /**
