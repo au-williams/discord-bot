@@ -266,8 +266,8 @@ async function invokePluginsFunction(functionName, params) {
       await instance[functionName](params);
     }
     catch ({ stack }) {
-      logger.error(`${filename} ${functionName} threw an uncaught error`);
-      logger.error(filename, stack);
+      logger.error(`"${filename}" "${functionName}" threw an uncaught error`);
+      logger.error(stack);
     }
   }
 }
