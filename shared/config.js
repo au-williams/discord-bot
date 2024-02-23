@@ -23,8 +23,8 @@ export const COMPONENT_CUSTOM_IDS = {
   CONFIG_EDIT_CONFIG_BUTTON: "CONFIG_EDIT_CONFIG_BUTTON",
   CONFIG_EDIT_CONFIG_MODAL: "CONFIG_EDIT_CONFIG_MODAL",
   CONFIG_EDIT_CONFIG_VALUE: "CONFIG_EDIT_CONFIG_VALUE",
-  CONFIG_LOCK_CHANGES_BUTTON: "CONFIG_LOCK_CHANGES_BUTTON",
-  CONFIG_UNLOCK_CHANGES_BUTTON: "CONFIG_UNLOCK_CHANGES_BUTTON"
+  CONFIG_USE_CLOUD_HOST_BUTTON: "CONFIG_USE_CLOUD_HOST_BUTTON",
+  CONFIG_USE_LOCAL_HOST_BUTTON: "CONFIG_USE_LOCAL_HOST_BUTTON"
 }
 
 export const COMPONENT_INTERACTIONS = [
@@ -37,12 +37,12 @@ export const COMPONENT_INTERACTIONS = [
     onInteractionCreate: ({ client, interaction }) => onEditConfigModal({ client, interaction })
   },
   {
-    customId: COMPONENT_CUSTOM_IDS.CONFIG_LOCK_CHANGES_BUTTON,
-    onInteractionCreate: ({ interaction }) => onLockChangesButton({ interaction })
+    customId: COMPONENT_CUSTOM_IDS.CONFIG_USE_CLOUD_HOST_BUTTON,
+    onInteractionCreate: ({ interaction }) => onCloudHostButton({ interaction })
   },
   {
-    customId: COMPONENT_CUSTOM_IDS.CONFIG_UNLOCK_CHANGES_BUTTON,
-    onInteractionCreate: ({ interaction }) => onUnlockChangesButton({ interaction })
+    customId: COMPONENT_CUSTOM_IDS.CONFIG_USE_LOCAL_HOST_BUTTON,
+    onInteractionCreate: ({ interaction }) => onLocalHostButton({ interaction })
   },
 ]
 
@@ -53,8 +53,8 @@ export const onMessageDelete = ({ message }) => tryDeleteThread({
 
 export default class Config {
   constructor(configFilename) {
-    const root = fs.readJsonSync("config.json");
-    Object.assign(this, root);
+    const rootConfig = fs.readJsonSync("config.json");
+    Object.assign(this, rootConfig);
 
     this.filename = configFilename;
     this.filepath = `./plugins/${configFilename}`;
@@ -63,8 +63,8 @@ export default class Config {
     this.starterMessage = null;
     this.threadChannel = null;
 
+    this.getIsCloudHosted = () => this.starterMessage?.content.includes("☁️");
     this.getIsEditable = () => this.toString().length <= 4000;
-    this.getIsLocked = () => this.starterMessage?.content.includes("🔒");
     this.toString = () => getJsonFormattedString(this.jsonObject);
 
     CONFIG_INSTANCES[this.filename] = this;
@@ -75,13 +75,13 @@ export default class Config {
    */
   async initialize(client) {
     try {
-      this.starterMessage ??= await findChannelMessage(discord_config_channel_id, ({ thread }) => thread?.name === this.filename);
-      this.threadChannel ??= this.starterMessage?.thread;
+      this.starterMessage = await findChannelMessage(discord_config_channel_id, ({ thread }) => thread?.name === this.filename);
+      this.threadChannel = this.starterMessage?.thread;
 
       if (!this.starterMessage) {
         // create the starter message on the first run of a new plugin
         const channel = await client.channels.fetch(discord_config_channel_id);
-        this.starterMessage = await channel.send({ content: "🟥🔓 `Changes Unlocked`" });
+        this.starterMessage = await channel.send({ content: "🟥 🖥️ `Syncing with local host`" });
       }
 
       if (!this.threadChannel) {
@@ -95,7 +95,7 @@ export default class Config {
 
       if (!fs.existsSync(this.filepath)) {
         await fs.writeFile(this.filepath, threadChannelJsonAsString || "{}");
-        logger.info(`Created new config values from Discord for "${this.filename}"`);
+        logger.info(`Created new config for "${this.filename}"`);
         this.jsonObject = fs.readJsonSync(this.filepath);
         Object.assign(this, this.jsonObject);
         return this;
@@ -112,41 +112,22 @@ export default class Config {
         this.jsonObject = existingJsonAsObject;
       }
 
-      else if (isConfigUpdate && this.getIsLocked()) {
+      else if (this.getIsCloudHosted()) {
+        // save cloud contents to local file
         this.jsonObject = tryParseJsonObject(threadChannelJsonAsString);
         await fs.rename(this.filepath, backupFilepath);
         logger.info(`Renamed "${this.filename}" to "${backupFilename}"`);
         await fs.writeFile(this.filepath, threadChannelJsonAsString);
-        logger.info(`Restored locked config from Discord for "${this.filename}"`);
+        logger.info(`Restored cloud config for "${this.filename}"`);
       }
 
-      else if (isConfigUpdate) {
+      else {
+        // save local file contents to cloud
         this.jsonObject = existingJsonAsObject;
-
-        await fs.writeFile(backupFilepath, threadChannelJsonAsString);
-        logger.info(`Saved obsolete config from Discord to "${backupFilename}"`);
-
-        const threadChannelFilter = ({ type }) => type === MessageType.Default;
-        const threadChannelMessages = await filterChannelMessages(this.threadChannel.id, threadChannelFilter);
-        for(const threadMessage of threadChannelMessages) await threadMessage.delete(); // todo: edit not delete
-        logger.info(`Deleted obsolete config from Discord for "${this.filename}"`);
-
-        let contents = splitJsonStringByLength(`${this}`, 1986);
-        if (!contents.length) contents.push(`{}`);
-        contents = contents.map(str => `\`\`\`json\n${str}\n\`\`\``);
-
-        const editButton = getEditButtonComponent({ isDisabled: false });
-        const lockButton = getLockButtonComponent();
-        const components = [new ActionRowBuilder().addComponents(editButton, lockButton)];
-
-        for(let i = 0; i < contents.length; i++) {
-          const data = { content: contents[i] };
-          if (i === contents.length - 1) data["components"] = components;
-          console.log(data);
-          await this.threadChannel.send(data);
-        }
-
-        logger.info(`Sent updated config to Discord for "${this.filename}"`);
+        // only back up the thread channel if it has string contents to save!
+        if (threadChannelJsonAsString) await fs.writeFile(backupFilepath, threadChannelJsonAsString);
+        if (threadChannelJsonAsString) logger.info(`Saved obsolete cloud config "${backupFilename}"`);
+        await updateThreadChannelJsonMessages(this);
       }
 
       Object.assign(this, this.jsonObject);
@@ -156,6 +137,37 @@ export default class Config {
       logger.error(stack);
     }
   }
+}
+
+async function updateThreadChannelJsonMessages(config) {
+  let updatedMessageContents = splitJsonStringByLength(config.toString(), 1986);
+  if (!updatedMessageContents.length) updatedMessageContents.push(`{}`);
+  updatedMessageContents = updatedMessageContents.map(str => `\`\`\`json\n${str}\n\`\`\``);
+
+  const editButton = getEditButtonComponent({ isDisabled: false });
+  const lockButton = getCloudButtonComponent();
+  const components = [new ActionRowBuilder().addComponents(editButton, lockButton)];
+
+  const filter = ({ type }) => type === MessageType.Default;
+  const threadChannelMessages = await filterChannelMessages(config.threadChannel.id, filter);
+  for(const threadChannelMessage of threadChannelMessages) await threadChannelMessage.delete();
+
+  for(let i = 0; i < updatedMessageContents.length; i++) {
+    const options = { components: [], content: updatedMessageContents[i] };
+    if (i === updatedMessageContents.length - 1) options.components = components;
+    await config.threadChannel.send(options);
+  }
+
+  logger.info(`Saved updated cloud config for "${config.filename}"`);
+}
+
+function getCloudButtonComponent() {
+  const button = new ButtonBuilder();
+  button.setCustomId(COMPONENT_CUSTOM_IDS.CONFIG_USE_CLOUD_HOST_BUTTON);
+  button.setEmoji("☁️");
+  button.setLabel("Use Cloud Host");
+  button.setStyle(ButtonStyle.Success);
+  return button;
 }
 
 function getEditButtonComponent({ isDisabled }) {
@@ -172,20 +184,11 @@ function getJsonFormattedString(jsonObject) {
   return JSON.stringify(jsonObject, null, 2)
 }
 
-function getLockButtonComponent() {
+function getLocalButtonComponent() {
   const button = new ButtonBuilder();
-  button.setCustomId(COMPONENT_CUSTOM_IDS.CONFIG_LOCK_CHANGES_BUTTON);
-  button.setEmoji("🔒");
-  button.setLabel("Lock Changes");
-  button.setStyle(ButtonStyle.Success);
-  return button;
-}
-
-function getUnlockButtonComponent() {
-  const button = new ButtonBuilder();
-  button.setCustomId(COMPONENT_CUSTOM_IDS.CONFIG_UNLOCK_CHANGES_BUTTON);
-  button.setEmoji("🔓");
-  button.setLabel("Unlock Changes");
+  button.setCustomId(COMPONENT_CUSTOM_IDS.CONFIG_USE_LOCAL_HOST_BUTTON);
+  button.setEmoji("🖥️");
+  button.setLabel("Use Local Host");
   button.setStyle(ButtonStyle.Danger);
   return button;
 }
@@ -236,11 +239,11 @@ async function onEditConfigModal({ interaction }) {
 
   const { fields } = interaction;
   const { CONFIG_EDIT_CONFIG_VALUE } = COMPONENT_CUSTOM_IDS;
-  const textInputValue = fields.getTextInputValue(CONFIG_EDIT_CONFIG_VALUE);
-  const textInputValueAsJson = tryParseJsonObject(textInputValue);
+  const textInputJsonAsString = fields.getTextInputValue(CONFIG_EDIT_CONFIG_VALUE);
+  const textInputJsonAsObject = tryParseJsonObject(textInputJsonAsString);
 
-  if (!textInputValueAsJson) {
-    await interaction.editReply("Your input was not valid JSON. Try again.");
+  if (!textInputJsonAsObject) {
+    await interaction.editReply("Your input was not valid JSON. Please try again.");
     return;
   }
 
@@ -248,18 +251,16 @@ async function onEditConfigModal({ interaction }) {
   const backupFilename = getUniqueFilename(config.filepath);
   const backupFilepath = config.filepath.replace(config.filename, backupFilename);
 
-  const threadChannelJsonAsString = getJsonFormattedString(textInputValueAsJson);
-  const threadChannelJsonAsObject = tryParseJsonObject(threadChannelJsonAsString);
-
   await fs.rename(config.filepath, backupFilepath);
-  logger.info(`Renamed "${config.filename}" to "${backupFilename}"`);
-  await fs.writeFile(config.filepath, threadChannelJsonAsString);
-  logger.info(`Saved config from Discord for "${config.filename}"`);
+  logger.info(`Renamed obsolete "${config.filename}" to "${backupFilename}"`);
+  await fs.writeFile(config.filepath, getJsonFormattedString(textInputJsonAsObject));
+  logger.info(`Saved edited config for "${config.filename}"`);
 
-  config.jsonObject = threadChannelJsonAsObject;
+  config.jsonObject = textInputJsonAsObject;
   Object.assign(config, config.jsonObject);
 
   await interaction.deleteReply();
+  await updateThreadChannelJsonMessages(config);
   await interaction.followUp({ content: "Success! The config has been updated.", ephemeral: true });
 }
 
@@ -268,15 +269,12 @@ async function onEditConfigModal({ interaction }) {
  * @param {Object} param
  * @param {ButtonInteraction} param.interaction
  */
-async function onLockChangesButton({ interaction }) {
+async function onCloudHostButton({ interaction }) {
   await interaction.deferUpdate();
-
   const starterMessage = await interaction.channel.fetchStarterMessage();
-  await starterMessage.edit("🟩🔒 `Changes Locked`");
-
+  await starterMessage.edit("🟩 ☁️ `Syncing with cloud host`");
   const editButton = getEditButtonComponent({ isDisabled: true });
-  const unlockButton = getUnlockButtonComponent();
-
+  const unlockButton = getLocalButtonComponent();
   const components = [new ActionRowBuilder().addComponents(editButton, unlockButton)];
   await interaction.message.edit({ components });
 }
@@ -286,15 +284,55 @@ async function onLockChangesButton({ interaction }) {
  * @param {Object} param
  * @param {ButtonInteraction} param.interaction
  */
-async function onUnlockChangesButton({ interaction }) {
+async function onLocalHostButton({ interaction }) {
   await interaction.deferUpdate();
-
   const starterMessage = await interaction.channel.fetchStarterMessage();
-  await starterMessage.edit("🟥🔓 `Changes Unlocked`");
-
+  await starterMessage.edit("🟥 🖥️ `Syncing with local host`");
   const editButton = getEditButtonComponent({ isDisabled: false });
-  const lockButton = getLockButtonComponent();
-
+  const lockButton = getCloudButtonComponent();
   const components = [new ActionRowBuilder().addComponents(editButton, lockButton)];
   await interaction.message.edit({ components });
 }
+
+// ------------------------------------------------------------------------- //
+// >> CODE GRAVEYARD                                                      << //
+// ------------------------------------------------------------------------- //
+
+/**
+ * This code's used to edit thread channel messages instead of lazily deleting them.
+ *   Too bad Discord forces the (Edited) tag below each message which creates a huge
+ *   gap between messages displaying JSON content that's intended to be seamless ...
+ *   To the code graveyard you go! Maybe you'll be useful one day like the old phone
+ *   chargers I've had in my closet for over a decade just in case their time comes.
+ */
+
+// if (updatedMessageContents.length >= threadChannelMessages.length) {
+//   // update all thread channel messages
+//   for(let i = 0; i < threadChannelMessages.length; i++) {
+//     const options = { components: [], content: updatedMessageContents[i] };
+//     if (i === updatedMessageContents.length - 1) options.components = components;
+//     await threadChannelMessages[i].edit(options);
+//   }
+
+//   // create new thread channel messages
+//   for(let i = threadChannelMessages.length; i < updatedMessageContents.length; i++) {
+//     const options = { components: [], content: updatedMessageContents[i] };
+//     if (i === updatedMessageContents.length - 1) options.components = components;
+//     await config.threadChannel.send(options);
+//   }
+// }
+
+// else {
+//   // update first n channel messages
+//   for(let i = 0; i < updatedMessageContents.length; i++) {
+//     const options = { components: [], content: updatedMessageContents[i] };
+//     if (i === updatedMessageContents.length - 1) options.components = components;
+//     await config.threadChannel.edit(options);
+//   }
+
+//   // delete remaining channel messages
+//   for (let i = updatedMessageContents.length; i < threadChannelMessages.length; i++) {
+//     const message = threadChannelMessages[i];
+//     await message.delete();
+//   }
+// }
