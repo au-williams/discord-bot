@@ -113,7 +113,9 @@ client.on(Events.InteractionCreate, async interaction => {
       INITIALIZED_PLUGINS.filter(filter).map(map).forEach(({ filename, onInteractionCreate, requiredChannelIds, requiredRoleIds }) => {
         const { channel, member: { roles }, user: { username } } = interaction;
         const isRequiredChannelId = !Array.isArray(requiredChannelIds) || requiredChannelIds.includes(channel.id);
-        const isRequiredRoleId = !Array.isArray(requiredRoleIds) || requiredRoleIds.some(requiredId => roles.cache.some(({ id }) => id === requiredId));
+
+        const roleIds = typeof requiredRoleIds === "function" && requiredRoleIds();
+        const isRequiredRoleId = roleIds.some(roleId => roles.cache.some(({ id }) => id === roleId));
 
         const formatContent = (message, valueStart, values, valueEnd) => {
           const predicate = (p, c, i) => `${p}${i && i === values.length - 1 ? " and " : " "}${valueStart}${c}${valueEnd}`;
@@ -126,7 +128,7 @@ client.on(Events.InteractionCreate, async interaction => {
         }
 
         else if (!isRequiredRoleId) {
-          const uniqueRequiredRoleIds = [...new Set(requiredRoleIds)];
+          const uniqueRequiredRoleIds = [...new Set(roleIds)];
           const content = formatContent(`\`🔒Locked\` This can only be used by the`, "<@&", uniqueRequiredRoleIds, ">") + ` role${uniqueRequiredRoleIds.length === 1 ? "" : "s"}!`;
           interaction.reply({ content, ephemeral: true }).then(() => logger.info(`${username} tried ${interactionType} interaction "${interactionName}"`, filename));
         }

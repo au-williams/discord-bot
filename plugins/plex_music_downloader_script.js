@@ -65,29 +65,29 @@ export const COMPONENT_INTERACTIONS = [
     customId: COMPONENT_CUSTOM_IDS.FOLLOW_UPDATES_BUTTON,
     description: "Monitors the YouTube playlist for new videos and publicly posts those links to the Discord channel.",
     onInteractionCreate: ({ interaction }) => { followYouTubePlaylistUpdates(interaction) }, // { throw "Not implemented" },
-    requiredRoleIds: [config.discord_admin_role_id]
+    requiredRoleIds: () => [config.discord_admin_role_id]
   },
   {
     customId: COMPONENT_CUSTOM_IDS.IMPORT_INTO_PLEX_BUTTON,
     description: "Extracts the audio from a link and imports it into the bot's Plex library for secured long-term storage.",
     onInteractionCreate: ({ interaction }) => showMetadataModal(interaction, COMPONENT_CUSTOM_IDS.IMPORT_INTO_PLEX_MODAL, "Import into Plex"),
-    requiredRoleIds: [config.discord_admin_role_id]
+    requiredRoleIds: () => [config.discord_admin_role_id]
   },
   {
     customId: COMPONENT_CUSTOM_IDS.IMPORT_INTO_PLEX_MODAL,
     onInteractionCreate: ({ interaction }) => downloadLinkAndExecute(interaction, COMPONENT_CUSTOM_IDS.IMPORT_INTO_PLEX_MODAL, callbackImportPlexFile),
-    requiredRoleIds: [config.discord_admin_role_id]
+    requiredRoleIds: () => [config.discord_admin_role_id]
   },
   {
     customId: COMPONENT_CUSTOM_IDS.DELETE_FROM_PLEX_BUTTON,
     description: "Removes the previously imported audio file from the bot's Plex library and deletes it from the filesystem.",
     onInteractionCreate: ({ interaction }) => showDeletionModal(interaction, COMPONENT_CUSTOM_IDS.DELETE_FROM_PLEX_MODAL, "Delete from Plex"),
-    requiredRoleIds: [config.discord_admin_role_id]
+    requiredRoleIds: () => [config.discord_admin_role_id]
   },
   {
     customId: COMPONENT_CUSTOM_IDS.DELETE_FROM_PLEX_MODAL,
     onInteractionCreate: ({ interaction }) => deleteLinkFromPlex(interaction),
-    requiredRoleIds: [config.discord_admin_role_id]
+    requiredRoleIds: () => [config.discord_admin_role_id]
   },
   {
     customId: COMPONENT_CUSTOM_IDS.SHOW_ALL_YOUTUBE_SONGS,
