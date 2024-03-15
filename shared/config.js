@@ -13,6 +13,7 @@ const CONFIG_INSTANCES = {};
 
 const logger = new Logger("config.js");
 
+// todo: broken if thread with no content
 // todo: updating config from plugin, reload config thread
 
 // ------------------------------------------------------------------------- //
@@ -133,8 +134,8 @@ export default class Config {
       Object.assign(this, this.jsonObject);
       return this;
     }
-    catch({ stack }) {
-      logger.error(stack);
+    catch(e) {
+      logger.error(e);
     }
   }
 }
@@ -144,7 +145,7 @@ async function updateThreadChannelJsonMessages(config) {
   if (!updatedMessageContents.length) updatedMessageContents.push(`{}`);
   updatedMessageContents = updatedMessageContents.map(str => `\`\`\`json\n${str}\n\`\`\``);
 
-  const editButton = getEditButtonComponent({ isDisabled: false });
+  const editButton = getEditButtonComponent();
   const lockButton = getCloudButtonComponent();
   const components = [new ActionRowBuilder().addComponents(editButton, lockButton)];
 
@@ -170,13 +171,12 @@ function getCloudButtonComponent() {
   return button;
 }
 
-function getEditButtonComponent({ isDisabled }) {
+function getEditButtonComponent() {
   const button = new ButtonBuilder();
   button.setCustomId(COMPONENT_CUSTOM_IDS.CONFIG_EDIT_CONFIG_BUTTON);
-  button.setDisabled(isDisabled);
   button.setEmoji("📝");
   button.setLabel("Edit Config");
-  button.setStyle(isDisabled ? ButtonStyle.Secondary : ButtonStyle.Primary);
+  button.setStyle(ButtonStyle.Primary);
   return button;
 }
 
@@ -224,8 +224,8 @@ async function onEditConfigButton({ interaction }) {
       .setTitle("Edit JSON")
     );
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
   }
 }
 
@@ -273,7 +273,7 @@ async function onCloudHostButton({ interaction }) {
   await interaction.deferUpdate();
   const starterMessage = await interaction.channel.fetchStarterMessage();
   await starterMessage.edit("🟩 ☁️ `Syncing with cloud host`");
-  const editButton = getEditButtonComponent({ isDisabled: true });
+  const editButton = getEditButtonComponent();
   const unlockButton = getLocalButtonComponent();
   const components = [new ActionRowBuilder().addComponents(editButton, unlockButton)];
   await interaction.message.edit({ components });

@@ -144,8 +144,8 @@ async function onDeepDiveButtonInteraction({ client, interaction }) {
     const { currentDive, currentEndTime, currentStartTime } = await getCurrentAndPreviousAssignments({ channel, client });
     sendAssignmentDetailsReply({ assignment: currentDive, currentEndTime, currentStartTime, interaction });
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
   }
 }
 
@@ -155,8 +155,8 @@ async function onEliteDeepDiveButtonInteraction({ client, interaction }) {
     const { currentEliteDive, currentEndTime, currentStartTime } = await getCurrentAndPreviousAssignments({ channel, client });
     sendAssignmentDetailsReply({ assignment: currentEliteDive, currentEndTime, currentStartTime, interaction });
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
   }
 }
 
@@ -169,8 +169,8 @@ async function sendAssignmentDetailsReply({ assignment, currentEndTime, currentS
     await interaction.editReply({ embeds, files });
     logger.info(`Sent ${assignment.type.toLowerCase()} reply to ${interaction.channel.guild.name} #${interaction.channel.name}`);
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
   }
 }
 
@@ -190,8 +190,8 @@ async function onCommandInteraction({ client, interaction }) {
 
     logger.info(`Sent embed reply to ${channel.guild.name} #${channel.name}`);
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
   }
 }
 

@@ -2,7 +2,6 @@ import { getAverageColor } from 'fast-average-color-node';
 import { getIsNumeric } from "./string.js";
 import { nanoid } from 'nanoid'
 import { scheduledJobs } from "croner";
-import { setTimeout } from "timers/promises";
 import download from "download";
 import fs from "fs-extra";
 
@@ -19,7 +18,7 @@ export const fetchRetryPolicy = {
 
 /**
  * Create a temporary download of the destination file to process with getAverageColor
- * @param {String} url
+ * @param {string} url
  */
 export const getAverageColorFromUrl = async url => {
   const tempDownloadDirectory = `${temp_directory}\\${nanoid()}`;
@@ -33,7 +32,7 @@ export const getAverageColorFromUrl = async url => {
 /**
  * The options for the `croner` NPM package
  * @param {Logger} logger
- * @param {String} appendedJobName
+ * @param {string} appendedJobName
  */
 export const getCronOptions = (logger, appendedJobName = "") => {
   let name = `${logger.filename}${(appendedJobName ? " ":"")}${appendedJobName}`;
@@ -47,7 +46,7 @@ export const getCronOptions = (logger, appendedJobName = "") => {
   }
 
   return {
-    catch: ({ stack }) => logger.error(stack),
+    catch: e => logger.error(e),
     name,
     protect: true
   }

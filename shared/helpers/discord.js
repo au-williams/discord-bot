@@ -1,3 +1,6 @@
+import { getLinkFromString, getLinkWithoutParametersFromString, getTruncatedString } from "./string.js";
+import { ChannelType } from "discord.js";
+
 /**
  * Try deleting a child thread if one exists when a starter message is deleted
  * TODO: change pluginFilename to logger instance
@@ -15,8 +18,31 @@ export async function tryDeleteThread({ allowedChannelIds, logger, starterMessag
     if (isValidOperation) logger.info(`Deleted thread with starter message "${starterMessage.id}"`);
     return isValidOperation;
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
     return false;
   }
+}
+
+/**
+ * Get the existing thread or create one if it doesn't exist
+ * @param {Object} param
+ * @param {Message} param.starterMessage
+ * @param {Object} param.clientOptions
+ * @param {Object} param.threadOptions
+ * @returns {ThreadChannel}
+ */
+export async function getOrCreateThreadChannel({ starterMessage, clientOptions, threadOptions }) {
+  if (starterMessage.hasThread && starterMessage.thread) return starterMessage.thread;
+
+  threadOptions.name = getTruncatedString(threadOptions.name, 100); // maximum thread name size
+  const thread = await starterMessage.startThread(threadOptions);
+
+  if (clientOptions.removeMembers) {
+    const fetchedMembers = await thread.members.fetch();
+    const removedMemberIds = fetchedMembers.filter(({ user }) => !user.bot).map(({ id }) => id);
+    for(const id of removedMemberIds) await thread.members.remove(id);
+  }
+
+  return thread;
 }

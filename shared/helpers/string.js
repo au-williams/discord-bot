@@ -40,3 +40,36 @@ export function getUniqueFilename(filepath) {
 
   return `${filename} (${nextNumber})${extension}`;
 }
+
+/**
+ * Extract a link from a string
+ * `"foo http://youtu.be/w?v=a&b=c bar"` -> `"http://youtu.be/w?v=a&b=c"`
+ * @param {string} string
+ * @returns {string}
+ */
+export function getLinkFromString(string) {
+  const match = string.match(/(https?:\/\/[^\s]+)/g);
+  return match?.length ? match[0] : null;
+}
+
+/**
+ * Extract a link from a string with its parameters removed
+ * `"foo http://youtu.be/w?v=a&b=c bar"` -> `"http://youtu.be/w?v=a"`
+ * @param {string} string
+ * @returns {string}
+ */
+export function getLinkWithoutParametersFromString(string) {
+  const match = string.match(/(https?:\/\/[^&\s]+)/g);
+  return match?.length ? match[0] : null;
+}
+
+/**
+ * Truncate a string to the maximum allowed size
+ * @param {*} string
+ * @param {*} maxLength
+ * @returns {*}
+ */
+export function getTruncatedString(string, maxLength) {
+  if (string.length > maxLength) string = string.slice(0, maxLength - 3) + "...";
+  return string;
+}

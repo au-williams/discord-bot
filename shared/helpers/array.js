@@ -29,7 +29,7 @@ export function getLeastFrequentlyOccurringStrings(stringArray) {
  * Splits a string by the desired size of returned items
  * (Example 1: "aabbccdd", 2 => ["aa", "bb", "cc", "dd"])
  * (Example 2: "abcdefgh", 3 => ["abc", "def", "gh"])
- * @param {String} str
+ * @param {string} str
  * @param {Number} length
  * @returns {String[]}
  */

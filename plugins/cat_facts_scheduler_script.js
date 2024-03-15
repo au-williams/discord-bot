@@ -83,7 +83,7 @@ async function onInteractionCreate({ interaction }) {
     await interaction.editReply(randomItem(config.sanitized_catfact_api_responses));
     logger.info(`Sent a cat fact to ${interaction.channel.guild.name} #${interaction.channel.name}`);
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
   }
 }

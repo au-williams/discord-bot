@@ -25,7 +25,7 @@
     "probe-image-size": "^7.2.3",
     "random-item": "^4.0.1",
     "sanitize-filename": "^1.6.3",
-    "youtube-dl-exec": "^2.4.0"
+    "youtube-dl-exec": "^2.5.7"
   },
   "devDependencies": {
     "eslint": "^8.37.0"

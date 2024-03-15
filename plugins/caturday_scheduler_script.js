@@ -45,8 +45,8 @@ export const onClientReady = async ({ client }) => {
     const isMissedJob = now.getDay() === 6 && now.getHours() >= 9 && (lastChannelMessage ? lastChannelMessage.createdAt < today9am : true);
     if (isMissedJob) cronEntrypoint.trigger();
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
   }
 }
 
@@ -93,8 +93,8 @@ async function cronJobAnnouncement(client) {
 
     logger.info(`Sent caturday embed to ${channel.guild.name} #${channel.name}`);
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
   }
 }
 
@@ -130,8 +130,8 @@ async function cronJobMaintenance() {
       await message.edit({ embeds: [embed] });
     }
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
   }
 }
 
@@ -158,8 +158,8 @@ async function fetchMessageDataForConfigValues() {
       }
     }))
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
   }
 }
 
@@ -187,7 +187,7 @@ function getImageUrlsFromMessage({ attachments, embeds }) {
 
     return [...new Set(nestedImageUrls)];
   }
-  catch({ stack }) {
-    logger.error(stack);
+  catch(e) {
+    logger.error(e);
   }
 }
