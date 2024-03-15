@@ -1,4 +1,4 @@
-import { getTruncatedString } from "../helpers/string.js";
+import { getTruncatedString } from "../helpers/utilities.js";
 
 export default class LinkData {
   constructor({

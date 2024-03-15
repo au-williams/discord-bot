@@ -2,10 +2,8 @@ import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, Channe
 import { Cron } from "croner";
 import { extname, resolve } from "path";
 import { filterChannelMessages, findChannelMessage, getChannelMessages } from "../index.js";
-import { getCronOptions } from "../shared/helpers/object.js";
-import { getLinkWithoutParametersFromString } from "../shared/helpers/string.js";
+import { getCronOptions, getLinkWithoutParametersFromString, getTimestampAsTotalSeconds } from "../shared/helpers/utilities.js";
 import { getOrCreateThreadChannel, tryDeleteThread } from "../shared/helpers/discord.js";
-import { getTimestampAsTotalSeconds } from "../shared/helpers/number.js";
 import { nanoid } from "nanoid";
 import * as oembed from "@extractus/oembed-extractor";
 import AFHConvert from "ascii-fullwidth-halfwidth-convert";

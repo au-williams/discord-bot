@@ -1,27 +1,36 @@
-import { getLinkFromString, getLinkWithoutParametersFromString, getTruncatedString } from "./string.js";
-import { ChannelType } from "discord.js";
+import { ButtonBuilder, ButtonStyle } from "discord.js";
+import { getTruncatedString } from "./utilities.js";
 
 /**
- * Try deleting a child thread if one exists when a starter message is deleted
- * TODO: change pluginFilename to logger instance
- * @param {Object} param
- * @param {string[]} param.allowedChannelIds
- * @param {Logger} param.logger
- * @param {Message} param.starterMessage
- * @returns {bool}
+ * Get the "Delete from Plex" button component
+ * @param {string} componentCustomId
+ * @param {string} emojiId
+ * @returns {ButtonComponent}
  */
-export async function tryDeleteThread({ allowedChannelIds, logger, starterMessage }) {
-  try {
-    const isAllowedChannel = allowedChannelIds.includes(starterMessage.channel.id);
-    const isValidOperation = isAllowedChannel && starterMessage.thread;
-    if (isValidOperation) await starterMessage.thread.delete();
-    if (isValidOperation) logger.info(`Deleted thread with starter message "${starterMessage.id}"`);
-    return isValidOperation;
-  }
-  catch(e) {
-    logger.error(e);
-    return false;
-  }
+export function getDeleteFromPlexButton(componentCustomId, emojiId) {
+  const button = new ButtonBuilder();
+  button.setCustomId(componentCustomId);
+  button.setDisabled(false);
+  button.setEmoji(emojiId);
+  button.setLabel("Delete from Plex");
+  button.setStyle(ButtonStyle.Secondary);
+  return button;
+}
+
+/**
+ * Get the "Import into Plex" button component
+ * @param {string} componentCustomId
+ * @param {string} emojiId
+ * @returns {ButtonComponent}
+ */
+export function getImportIntoPlexButton(componentCustomId, emojiId) {
+  const button = new ButtonBuilder();
+  button.setCustomId(componentCustomId);
+  button.setDisabled(false);
+  button.setEmoji(emojiId);
+  button.setLabel("Import into Plex");
+  button.setStyle(ButtonStyle.Secondary);
+  return button;
 }
 
 /**
@@ -45,4 +54,41 @@ export async function getOrCreateThreadChannel({ starterMessage, clientOptions, 
   }
 
   return thread;
+}
+
+/**
+ * Get the "Searching in Plex" button component
+ * @param {string} componentCustomId
+ * @returns {ButtonComponent}
+ */
+export function getSearchingPlexButton(componentCustomId) {
+  const button = new ButtonBuilder();
+  button.setCustomId(componentCustomId);
+  button.setDisabled(true);
+  button.setEmoji("⏳");
+  button.setLabel("Searching in Plex");
+  button.setStyle(ButtonStyle.Secondary);
+  return button;
+}
+
+/**
+ * Try deleting a child thread if one exists when a starter message is deleted
+ * @param {Object} param
+ * @param {string[]} param.allowedChannelIds
+ * @param {Logger} param.logger
+ * @param {Message} param.starterMessage
+ * @returns {bool}
+ */
+export async function tryDeleteThread({ allowedChannelIds, logger, starterMessage }) {
+  try {
+    const isAllowedChannel = allowedChannelIds.includes(starterMessage.channel.id);
+    const isValidOperation = isAllowedChannel && starterMessage.thread;
+    if (isValidOperation) await starterMessage.thread.delete();
+    if (isValidOperation) logger.info(`Deleted thread with starter message "${starterMessage.id}"`);
+    return isValidOperation;
+  }
+  catch(e) {
+    logger.error(e);
+    return false;
+  }
 }

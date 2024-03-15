@@ -1,9 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, TextInputBuilder, TextInputStyle, ModalBuilder, MessageType } from "discord.js";
 import { filterChannelMessages, findChannelMessage } from "../index.js";
-import { getUniqueFilename } from "./helpers/string.js";
-import { splitJsonStringByLength } from "./helpers/array.js";
+import { getUniqueFilename, splitJsonStringByLength, tryParseJsonObject } from "./helpers/utilities.js";
 import { tryDeleteThread } from "./helpers/discord.js";
-import { tryParseJsonObject } from "./helpers/object.js";
 import fs from "fs-extra";
 import Logger from "./logger.js";
 

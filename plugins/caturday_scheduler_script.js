@@ -1,9 +1,7 @@
 import { Cron } from "croner";
 import { EmbedBuilder } from "discord.js";
 import { filterChannelMessages, findChannelMessage } from "../index.js";
-import { getAverageColorFromUrl } from "../shared/helpers/object.js";
-import { getCronOptions } from "../shared/helpers/object.js";
-import { getLeastFrequentlyOccurringStrings } from "../shared/helpers/array.js";
+import { getAverageColorFromUrl, getCronOptions, getLeastFrequentlyOccurringStrings } from "../shared/helpers/utilities.js";
 import Config from "../shared/config.js";
 import Logger from "../shared/logger.js";
 import randomItem from "random-item";
