@@ -68,6 +68,41 @@ client.on(Events.MessageCreate, message => {
   }
 });
 
+/**
+ * Refetch the starter message of a created thread so its readonly .hasThread property is up to date
+ */
+client.on(Events.ThreadCreate, async threadChannel => {
+  try {
+    const starterMessage = await threadChannel.fetchStarterMessage();
+    const { channel } = starterMessage;
+
+    const index = CHANNEL_MESSAGES[channel.id].findIndex(({ id }) => id === starterMessage.id);
+    const response = await channel.messages.fetch(starterMessage.id);
+    CHANNEL_MESSAGES[channel.id][index] = response
+  }
+  catch(e) {
+    logger.error(e);
+  }
+});
+
+/**
+ * Refetch the starter message of a deleted thread so its readonly .hasThread property is up to date
+ */
+client.on(Events.ThreadDelete, async threadChannel => {
+  try {
+    const starterMessage = await threadChannel.fetchStarterMessage().catch(() => null);
+    if (!starterMessage) return; // starterMessage is deleted so we don't care about it
+    const { channel } = starterMessage;
+
+    const index = CHANNEL_MESSAGES[channel.id].findIndex(({ id }) => id === starterMessage.id);
+    const response = await channel.messages.fetch(starterMessage.id);
+    CHANNEL_MESSAGES[channel.id][index] = response
+  }
+  catch(e) {
+    logger.error(e);
+  }
+});
+
 client.on(Events.MessageDelete, async message => {
   try {
     await invokePluginsFunction("onMessageDelete", { client, message });

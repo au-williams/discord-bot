@@ -5,6 +5,7 @@ import { filterChannelMessages, findChannelMessage, getChannelMessages } from ".
 import { getCronOptions, getLinkWithoutParametersFromString, getTimestampAsTotalSeconds } from "../shared/helpers/utilities.js";
 import { getOrCreateThreadChannel, tryDeleteThread } from "../shared/helpers/discord.js";
 import { nanoid } from "nanoid";
+import { setTimeout } from "timers/promises";
 import * as oembed from "@extractus/oembed-extractor";
 import AFHConvert from "ascii-fullwidth-halfwidth-convert";
 import CachedLinkData from "../shared/models/CachedLinkData.js"
@@ -105,11 +106,12 @@ export const onClientReady = async ({ client }) => {
       await filterChannelMessages(config.discord_allowed_channel_id, ({ system }) => !system);
 
     for (const message of channelMessages) {
-      const cachedLinkData = await getOrCreateLinkData(message);
-      if (!cachedLinkData) continue; // link is not supported
+      const cachedLinkData = await getOrCreateCachedLinkData(message);
+      if (!cachedLinkData) continue; // message contents not supported
 
-      let threadChannel = (message.hasThread && message.thread) || undefined;
-      threadChannel ??= await createThreadChannel(cachedLinkData, message);
+      const threadChannel = message.hasThread
+        ? message.thread : await createThreadChannel(cachedLinkData, message);
+
       await validateThreadChannel(cachedLinkData, threadChannel);
     }
   }
@@ -128,10 +130,19 @@ export const onMessageCreate = async ({ message }) => {
     const isAllowedDiscordChannel = message.channel.id === config.discord_allowed_channel_id;
     if (!isAllowedDiscordChannel) return;
 
+    const linkWithoutParameters = getLinkWithoutParametersFromString(message.content);
+    if (!linkWithoutParameters) return;
+
     await message.react("⌛");
-    const cachedLinkData = await getOrCreateLinkData(message);
+    const cachedLinkData = await getOrCreateCachedLinkData(message);
     await message.reactions.cache.get("⌛").remove();
-    if (!cachedLinkData) return;
+
+    if (!cachedLinkData) {
+      await message.react("❌");
+      await setTimeout(2500);
+      await message.reactions.cache.get("❌").remove();
+      return;
+    }
 
     const threadChannel = await createThreadChannel(cachedLinkData, message);
     await validateThreadChannel(cachedLinkData, threadChannel);
@@ -262,7 +273,7 @@ async function callbackUploadDiscordFile(cachedLinkData, interaction, outputFile
  * Unsupported links will return undefined to reduce the number of outbound connections per operation (increasing the operating speed).
  * @param {string} link
  */
-async function getOrCreateLinkData(message) {
+async function getOrCreateCachedLinkData(message) {
   try {
     const { content } =
       message.channel.type === ChannelType.PublicThread || message.channel.type === ChannelType.PrivateThread
@@ -428,7 +439,7 @@ async function deleteLinkFromPlex(interaction) {
   try {
     await interaction.deferReply({ ephemeral: true });
 
-    const cachedLinkData = await getOrCreateLinkData(interaction.message);
+    const cachedLinkData = await getOrCreateCachedLinkData(interaction.message);
 
     if (!cachedLinkData) {
       logger.error("Attempted to import Plex file without cached data");
@@ -472,7 +483,7 @@ async function downloadLinkAndExecute(interaction, modalCustomId, callback, audi
   try {
     await interaction.deferReply({ ephemeral: true });
 
-    const cachedLinkData = await getOrCreateLinkData(interaction.message);
+    const cachedLinkData = await getOrCreateCachedLinkData(interaction.message);
     const endTimeTotalSeconds = getTimestampAsTotalSeconds(cachedLinkData.endTime);
 
     const inputArtist = interaction.fields.getTextInputValue("artist");
@@ -672,7 +683,7 @@ async function showMetadataModal(interaction, modalCustomId, modalTitle) {
   }
 
   try {
-    const cachedLinkData = await getOrCreateLinkData(interaction.message);
+    const cachedLinkData = await getOrCreateCachedLinkData(interaction.message);
 
     if (!cachedLinkData) {
       logger.warn("Attempted to show metadata modal without cached data");
@@ -880,7 +891,7 @@ async function showButtonDocumentation(interaction) {
 //     await interaction.deferReply({ ephemeral: true });
 
 //     const link = await getLinkFromMessageHierarchy(interaction.message);
-//     const cachedLinkData = await getOrCreateLinkData(message);
+//     const cachedLinkData = await getOrCreateCachedLinkData(message);
 //     const playlist = await ytpl(cachedLinkData.link);
 
 //     const downloadMp3Button = new ButtonBuilder();

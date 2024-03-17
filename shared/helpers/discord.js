@@ -42,18 +42,18 @@ export function getImportIntoPlexButton(componentCustomId, emojiId) {
  * @returns {ThreadChannel}
  */
 export async function getOrCreateThreadChannel({ starterMessage, clientOptions, threadOptions }) {
-  if (starterMessage.hasThread && starterMessage.thread) return starterMessage.thread;
+  if (starterMessage.hasThread) return starterMessage.thread;
 
   threadOptions.name = getTruncatedString(threadOptions.name, 100); // maximum thread name size
-  const thread = await starterMessage.startThread(threadOptions);
+  const threadChannel = await starterMessage.startThread(threadOptions);
 
   if (clientOptions.removeMembers) {
-    const fetchedMembers = await thread.members.fetch();
+    const fetchedMembers = await threadChannel.members.fetch();
     const removedMemberIds = fetchedMembers.filter(({ user }) => !user.bot).map(({ id }) => id);
-    for(const id of removedMemberIds) await thread.members.remove(id);
+    for(const id of removedMemberIds) await threadChannel.members.remove(id);
   }
 
-  return thread;
+  return threadChannel;
 }
 
 /**
