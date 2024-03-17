@@ -6,7 +6,6 @@ export default class CachedLinkData {
     endTime,
     id,
     linkWithoutParameters,
-    message,
     segments,
     title
    }) {
@@ -14,7 +13,6 @@ export default class CachedLinkData {
     this.endTime = endTime;
     this.id = id;
     this.linkWithoutParameters = linkWithoutParameters;
-    this.message = message;
     this.segments = segments;
     this.threadChannelName = getTruncatedString(`📲 ${title}`, 100);
     this.title = title;
