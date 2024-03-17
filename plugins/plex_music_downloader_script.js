@@ -7,16 +7,19 @@ import { getOrCreateThreadChannel, tryDeleteThread } from "../shared/helpers/dis
 import { nanoid } from "nanoid";
 import * as oembed from "@extractus/oembed-extractor";
 import AFHConvert from "ascii-fullwidth-halfwidth-convert";
+import CachedLinkData from "../shared/models/CachedLinkData.js"
 import ComponentOperation from "../shared/models/ComponentOperation.js"
 import Config from "../shared/config.js";
 import fs from "fs-extra";
-import LinkData from "../shared/models/LinkData.js"
 import Logger from "../shared/logger.js";
 import sanitize from "sanitize-filename";
 import youtubedl from "youtube-dl-exec";
 
 const config = new Config("plex_music_downloader_config.json");
 const logger = new Logger("plex_music_downloader_script.js");
+
+// todo: rename custom ids
+// todo: init fetch cache, cron loop cache
 
 // ------------------------------------------------------------------------- //
 // >> INTERACTION DEFINITIONS                                             << //
@@ -140,7 +143,7 @@ export const onMessageCreate = async ({ message }) => {
 
 /**
  * Validate the thread channel information and repair any inconsistencies
- * @param {LinkData} cachedLinkData
+ * @param {CachedLinkData} cachedLinkData
  * @param {ThreadChannel} threadChannel
  */
 async function validateThreadChannel(cachedLinkData, threadChannel) {
@@ -214,7 +217,7 @@ export const onMessageDelete = ({ message: starterMessage }) => tryDeleteThread(
 
 /**
  * Import the link into the Plex library after it was downloaded
- * @param {LinkData} cachedLinkData
+ * @param {CachedLinkData} cachedLinkData
  * @param {Interaction} interaction
  * @param {string} outputFilename
  * @param {string} outputFilepath
@@ -234,7 +237,7 @@ async function callbackImportPlexFile(cachedLinkData, interaction, outputFilenam
 
 /**
  * Upload the link to the Discord thread after it was downloaded
- * @param {LinkData} cachedLinkData
+ * @param {CachedLinkData} cachedLinkData
  * @param {Interaction} interaction
  * @param {string} outputFilename
  * @param {string} outputFilepath
@@ -347,7 +350,7 @@ async function getOrCreateLinkData(message) {
     // save link data to cache //
     // ----------------------- //
 
-    CACHED_LINK_DATA[linkWithoutParameters] = new LinkData({ authorName, endTime, title, id, linkWithoutParameters, });
+    CACHED_LINK_DATA[linkWithoutParameters] = new CachedLinkData({ authorName, endTime, title, id, linkWithoutParameters, });
     return CACHED_LINK_DATA[linkWithoutParameters];
   }
   catch(e) {
