@@ -19,8 +19,7 @@ import youtubedl from "youtube-dl-exec";
 const config = new Config("plex_music_downloader_config.json");
 const logger = new Logger("plex_music_downloader_script.js");
 
-// todo: rename custom ids
-// todo: init fetch cache, cron loop cache
+// todo: fetch cache on startup, loop cache in cron instead of channel messages
 
 // ------------------------------------------------------------------------- //
 // >> INTERACTION DEFINITIONS                                             << //
@@ -31,12 +30,10 @@ export const COMPONENT_CUSTOM_IDS = {
   DELETE_FROM_PLEX_MODAL: "DELETE_FROM_PLEX_MODAL",
   DOWNLOAD_MP3_BUTTON: "DOWNLOAD_MP3_BUTTON",
   DOWNLOAD_MP3_MODAL: "DOWNLOAD_MP3_MODAL",
-  FOLLOW_UPDATES_BUTTON: "FOLLOW_UPDATES_BUTTON",
-  IMPORT_INTO_PLEX_BUTTON: "IMPORT_INTO_PLEX_BUTTON",
-  IMPORT_INTO_PLEX_MODAL: "IMPORT_INTO_PLEX_MODAL",
+  IMPORT_MUSIC_INTO_PLEX_BUTTON: "IMPORT_MUSIC_INTO_PLEX_BUTTON",
+  IMPORT_MUSIC_INTO_PLEX_MODAL: "IMPORT_MUSIC_INTO_PLEX_MODAL",
   SEARCHING_PLEX_BUTTON: "SEARCHING_PLEX_BUTTON",
-  SHOW_ALL_YOUTUBE_SONGS: "SHOW_ALL_YOUTUBE_SONGS",
-  SHOW_BUTTON_DOCUMENTATION: "SHOW_BUTTON_DOCUMENTATION",
+  SHOW_BUTTON_DOCUMENTATION: "SHOW_BUTTON_DOCUMENTATION", // todo: move this to global
 }
 
 export const COMPONENT_INTERACTIONS = [
@@ -50,14 +47,14 @@ export const COMPONENT_INTERACTIONS = [
     onInteractionCreate: ({ interaction }) => downloadLinkAndExecute(interaction, COMPONENT_CUSTOM_IDS.DOWNLOAD_MP3_MODAL, callbackUploadDiscordFile, "mp3")
   },
   {
-    customId: COMPONENT_CUSTOM_IDS.IMPORT_INTO_PLEX_BUTTON,
+    customId: COMPONENT_CUSTOM_IDS.IMPORT_MUSIC_INTO_PLEX_BUTTON,
     description: "Extracts the audio from a link and imports it into the bot's Plex library for secured long-term storage.",
-    onInteractionCreate: ({ interaction }) => showMetadataModal(interaction, COMPONENT_CUSTOM_IDS.IMPORT_INTO_PLEX_MODAL, "Import into Plex"),
+    onInteractionCreate: ({ interaction }) => showMetadataModal(interaction, COMPONENT_CUSTOM_IDS.IMPORT_MUSIC_INTO_PLEX_MODAL, "Import into Plex"),
     requiredUserRoleIds: () => config.discord_admin_role_id
   },
   {
-    customId: COMPONENT_CUSTOM_IDS.IMPORT_INTO_PLEX_MODAL,
-    onInteractionCreate: ({ interaction }) => downloadLinkAndExecute(interaction, COMPONENT_CUSTOM_IDS.IMPORT_INTO_PLEX_MODAL, callbackImportPlexFile),
+    customId: COMPONENT_CUSTOM_IDS.IMPORT_MUSIC_INTO_PLEX_MODAL,
+    onInteractionCreate: ({ interaction }) => downloadLinkAndExecute(interaction, COMPONENT_CUSTOM_IDS.IMPORT_MUSIC_INTO_PLEX_MODAL, callbackImportPlexFile),
     requiredUserRoleIds: () => config.discord_admin_role_id
   },
   {
@@ -153,64 +150,6 @@ export const onMessageCreate = async ({ message }) => {
 }
 
 /**
- * Validate the thread channel information and repair any inconsistencies
- * @param {CachedLinkData} cachedLinkData
- * @param {ThreadChannel} threadChannel
- */
-async function validateThreadChannel(cachedLinkData, threadChannel) {
-  // ----------------------------------------------------------------------- //
-  // validate the thread channel name in case the attached link was modified //
-  // ----------------------------------------------------------------------- //
-
-  const isThreadChannelNameObsolete =
-    threadChannel?.name !== cachedLinkData.threadChannelName;
-
-  if (isThreadChannelNameObsolete) {
-    const obsoleteThreadChannelName = threadChannel.name;
-    await threadChannel.setName(cachedLinkData.threadChannelName);
-    logger.info(`Updated thread name "${obsoleteThreadChannelName}" -> "${cachedLinkData.threadChannelName}"`);
-  }
-
-  // ----------------------------------------------------------------------- //
-  // validate the thread channel plex button shows the local files existence //
-  // ----------------------------------------------------------------------- //
-
-  const { DELETE_FROM_PLEX_BUTTON, IMPORT_INTO_PLEX_BUTTON, SEARCHING_PLEX_BUTTON } = COMPONENT_CUSTOM_IDS;
-  const plexComponentIds = [DELETE_FROM_PLEX_BUTTON, IMPORT_INTO_PLEX_BUTTON, SEARCHING_PLEX_BUTTON];
-
-  const find = ({ components }) => components?.[0]?.components.some(some);
-  const some = ({ customId, type }) => plexComponentIds.includes(customId) && type === ComponentType.Button;
-
-  const messageWithPlexButton = await findChannelMessage(threadChannel.id, find);
-
-  if (messageWithPlexButton) {
-    const isArchived = messageWithPlexButton.channel.archived;
-    if (isArchived) await messageWithPlexButton.channel.setArchived(false);
-
-    const components = [ActionRowBuilder.from(messageWithPlexButton.components[0])];
-    const buttonIndex = messageWithPlexButton.components[0].components.findIndex(some);
-
-    components[0].components[buttonIndex].setCustomId(COMPONENT_CUSTOM_IDS.SEARCHING_PLEX_BUTTON);
-    components[0].components[buttonIndex].setDisabled(true);
-    components[0].components[buttonIndex].setEmoji("⏳");
-    components[0].components[buttonIndex].setLabel("Searching in Plex");
-
-    await messageWithPlexButton.edit({ components });
-
-    const isPlexFile = await getExistingPlexFilename(cachedLinkData);
-    const customId = isPlexFile ? COMPONENT_CUSTOM_IDS.DELETE_FROM_PLEX_BUTTON : COMPONENT_CUSTOM_IDS.IMPORT_INTO_PLEX_BUTTON;
-    const label = isPlexFile ? "Delete from Plex" : "Import into Plex";
-
-    components[0].components[buttonIndex].setCustomId(customId);
-    components[0].components[buttonIndex].setDisabled(false)
-    components[0].components[buttonIndex].setEmoji(config.discord_plex_emoji)
-    components[0].components[buttonIndex].setLabel(label);
-
-    await messageWithPlexButton.edit({ components });
-  }
-}
-
-/**
  * Delete the child thread when its message parent is deleted
  * @param {Object} param
  * @param {Client} param.client The Discord.js client
@@ -268,158 +207,61 @@ async function callbackUploadDiscordFile(cachedLinkData, interaction, outputFile
 }
 
 /**
- * Create a cache of potential fetches that we probably won't use because Discord's amazing API can't wait >3 seconds without erroring.
- * There is no way of improving this code smell without Discord's staff taking a shower and taking an intro to comp-sci college course.
- * Unsupported links will return undefined to reduce the number of outbound connections per operation (increasing the operating speed).
- * @param {string} link
- */
-async function getOrCreateCachedLinkData(message) {
-  try {
-    const { content } =
-      message.channel.type === ChannelType.PublicThread || message.channel.type === ChannelType.PrivateThread
-        ? await message.channel.fetchStarterMessage()
-        : message;
-
-    const linkWithoutParameters = getLinkWithoutParametersFromString(content);
-    if (!linkWithoutParameters) return undefined;
-
-    let cachedLinkData = CACHED_LINK_DATA[linkWithoutParameters];
-    if (cachedLinkData) return cachedLinkData;
-
-    // -------------------- //
-    // fetch youtubedl data //
-    // -------------------- //
-
-    const youtubedlOptions = {
-      output: "%(duration>%H:%M:%S)s,%(id)s",
-      print: "%(duration>%H:%M:%S)s,%(id)s",
-      simulate: true,
-      skipDownload: true
-    }
-
-    let youtubedlError; // this library may return undefined with no error thrown ... nice, right?
-    const youtubedlPayload = await youtubedl(linkWithoutParameters, youtubedlOptions).catch(e => {
-      youtubedlError = e.message || "Couldn't get youtubedl payload";
-      if (youtubedlError.includes(linkWithoutParameters)) return;
-      youtubedlError += ` "${linkWithoutParameters}"`;
-    });
-
-    if (!youtubedlPayload) {
-      logger.warn(youtubedlError)
-      return;
-    }
-
-    const endTime = youtubedlPayload.split(",")[0];
-    const id = youtubedlPayload.split(",")[1];
-
-    // ----------------- //
-    // fetch oembed data //
-    // ----------------- //
-
-    let oembedError;
-    const oembedPayload = await oembed.extract(linkWithoutParameters).catch(e => {
-      oembedError = e.message || "Couldn't get oembed payload";
-      if (oembedError.includes(linkWithoutParameters)) return;
-      oembedError += ` "${linkWithoutParameters}"`;
-    });
-
-    if (!oembedPayload) {
-      logger.warn(oembedError);
-      return;
-    }
-
-    const { author_name: originalAuthorName, title: originalTitle } = oembedPayload;
-    const asciiWidthConverter = new AFHConvert();
-
-    // if titles are in "${author} - ${title}" format
-    const splitTitle = originalTitle.split(" - ");
-    const isSplitTitle = splitTitle.length == 2;
-
-    let authorName = isSplitTitle ? splitTitle[0] : originalAuthorName;
-    let title = isSplitTitle ? splitTitle[1] : originalTitle;
-
-    // format author name
-    if (authorName.endsWith(" - Topic")) authorName = authorName.slice(0, -" - Topic".length);
-    authorName = asciiWidthConverter.toHalfWidth(authorName.trim());
-
-    // format title
-    if (title.startsWith(`${originalAuthorName} - `)) title = title.slice(`${originalAuthorName} - `.length);
-    if (title.endsWith(` by ${originalAuthorName}`)) title = title.slice(0, -` by ${originalAuthorName}`.length);
-    if (title.toLowerCase().endsWith(` [official music video]`)) title = title.slice(0, -` [official music video]`.length);
-    if (title.toLowerCase().endsWith(` (official music video)`)) title = title.slice(0, -` (official music video)`.length);
-    if (title.toLowerCase().endsWith(` [official visualizer]`)) title = title.slice(0, -` [official visualizer]`.length);
-    if (title.toLowerCase().endsWith(` (official visualizer)`)) title = title.slice(0, -` (official visualizer)`.length);
-    if (title.toLowerCase().endsWith(` [official audio]`)) title = title.slice(0, -` [official audio]`.length);
-    if (title.toLowerCase().endsWith(` (official audio)`)) title = title.slice(0, -` (official audio)`.length);
-    if (title.toLowerCase().endsWith(` [official]`)) title = title.slice(0, -` [official]`.length);
-    if (title.toLowerCase().endsWith(` (official)`)) title = title.slice(0, -` (official)`.length);
-    if (title.toLowerCase().endsWith(` [lyrics]`)) title = title.slice(0, -` [lyrics]`.length);
-    if (title.toLowerCase().endsWith(` (lyrics)`)) title = title.slice(0, -` (lyrics)`.length);
-    title = asciiWidthConverter.toHalfWidth(title.trim());
-
-    // ----------------------- //
-    // save link data to cache //
-    // ----------------------- //
-
-    CACHED_LINK_DATA[linkWithoutParameters] = new CachedLinkData({ authorName, endTime, title, id, linkWithoutParameters, });
-    return CACHED_LINK_DATA[linkWithoutParameters];
-  }
-  catch(e) {
-    logger.error(e);
-  }
-}
-
-/**
  * Create the thread channel for the message with a music link
  * @param {string} link
  * @param {Message} starterMessage
  * @param {Function} callback
  */
 async function createThreadChannel(cachedLinkData, starterMessage) {
-  const threadChannel = await getOrCreateThreadChannel({
-    starterMessage,
-    clientOptions: { removeMembers: true },
-    threadOptions: { name: cachedLinkData.threadChannelName }
-  });
+  try {
+    const threadChannel = await getOrCreateThreadChannel({
+      starterMessage,
+      clientOptions: { removeMembers: true },
+      threadOptions: { name: cachedLinkData.threadChannelName }
+    });
 
-  // --------------------------------------------------- //
-  // send buttons to download the message link in thread //
-  // --------------------------------------------------- //
+    // --------------------------------------------------- //
+    // send buttons to download the message link in thread //
+    // --------------------------------------------------- //
 
-  const downloadMp3Button = new ButtonBuilder();
-  downloadMp3Button.setCustomId(COMPONENT_CUSTOM_IDS.DOWNLOAD_MP3_BUTTON);
-  downloadMp3Button.setEmoji("📲");
-  downloadMp3Button.setLabel("Download MP3");
-  downloadMp3Button.setStyle(ButtonStyle.Secondary);
+    const downloadMp3Button = new ButtonBuilder();
+    downloadMp3Button.setCustomId(COMPONENT_CUSTOM_IDS.DOWNLOAD_MP3_BUTTON);
+    downloadMp3Button.setEmoji("📲");
+    downloadMp3Button.setLabel("Download MP3");
+    downloadMp3Button.setStyle(ButtonStyle.Secondary);
 
-  const searchingPlexButton = new ButtonBuilder();
-  searchingPlexButton.setCustomId(COMPONENT_CUSTOM_IDS.SEARCHING_PLEX_BUTTON);
-  searchingPlexButton.setDisabled(true);
-  searchingPlexButton.setEmoji("⏳");
-  searchingPlexButton.setLabel("Searching in Plex");
-  searchingPlexButton.setStyle(ButtonStyle.Secondary);
+    const searchingPlexButton = new ButtonBuilder();
+    searchingPlexButton.setCustomId(COMPONENT_CUSTOM_IDS.SEARCHING_PLEX_BUTTON);
+    searchingPlexButton.setDisabled(true);
+    searchingPlexButton.setEmoji("⏳");
+    searchingPlexButton.setLabel("Searching in Plex");
+    searchingPlexButton.setStyle(ButtonStyle.Secondary);
 
-  await threadChannel.send({
-    components: [new ActionRowBuilder().addComponents(downloadMp3Button, searchingPlexButton)],
-    content: "Use these to download this music from Discord:"
-  });
+    await threadChannel.send({
+      components: [new ActionRowBuilder().addComponents(downloadMp3Button, searchingPlexButton)],
+      content: "Use these to download this music from Discord:"
+    });
 
-  // ----------------------------------------------------- //
-  // send button to get documentation for previous buttons //
-  // ----------------------------------------------------- //
+    // ----------------------------------------------------- //
+    // send button to get documentation for previous buttons //
+    // ----------------------------------------------------- //
 
-  const showDocumentationButton = new ButtonBuilder();
-  showDocumentationButton.setCustomId(COMPONENT_CUSTOM_IDS.SHOW_BUTTON_DOCUMENTATION);
-  showDocumentationButton.setEmoji("🔖");
-  showDocumentationButton.setLabel("Show documentation");
-  showDocumentationButton.setStyle(ButtonStyle.Primary);
+    const showDocumentationButton = new ButtonBuilder();
+    showDocumentationButton.setCustomId(COMPONENT_CUSTOM_IDS.SHOW_BUTTON_DOCUMENTATION);
+    showDocumentationButton.setEmoji("🔖");
+    showDocumentationButton.setLabel("Show documentation");
+    showDocumentationButton.setStyle(ButtonStyle.Primary);
 
-  await threadChannel.send({
-    components: [new ActionRowBuilder().addComponents(showDocumentationButton)],
-    content: "Use this for help with these buttons:"
-  });
+    await threadChannel.send({
+      components: [new ActionRowBuilder().addComponents(showDocumentationButton)],
+      content: "Use this for help with these buttons:"
+    });
 
-  return threadChannel;
+    return threadChannel;
+  }
+  catch(e) {
+    logger.error(e);
+  }
 }
 
 /**
@@ -627,6 +469,131 @@ function getFormattedErrorMessage(error) {
 }
 
 /**
+ * Verify the link is not going to cause funky behavior (typically the root of a playlist with no track selected)
+ * @param {string} linkWithoutParameters
+ * @returns {boolean}
+ */
+function getIsLinkSupported(linkWithoutParameters) {
+  const isYoutubeListWithoutItem =
+    linkWithoutParameters.includes("youtube.com")
+    && !linkWithoutParameters.includes("?v=");
+  if (isYoutubeListWithoutItem) return false;
+
+  const isSoundCloudListWithoutItem =
+    linkWithoutParameters.includes("soundcloud.com")
+    && linkWithoutParameters.includes("/sets/")
+    && !linkWithoutParameters.includes("?in=");
+  if (isSoundCloudListWithoutItem) return false;
+
+  return true;
+}
+
+/**
+ * Create a cache of potential fetches that we probably won't use because Discord's amazing API can't wait >3 seconds without erroring.
+ * There is no way of improving this code smell without Discord's staff taking a shower and taking an intro to comp-sci college course.
+ * Unsupported links will return undefined to reduce the number of outbound connections per operation (increasing the operating speed).
+ * @param {string} link
+ */
+async function getOrCreateCachedLinkData(message) {
+  try {
+    const { content } =
+      message.channel.type === ChannelType.PublicThread || message.channel.type === ChannelType.PrivateThread
+        ? await message.channel.fetchStarterMessage()
+        : message;
+
+    const linkWithoutParameters = getLinkWithoutParametersFromString(content);
+    if (!linkWithoutParameters) return undefined;
+
+    const isLinkSupported = getIsLinkSupported(linkWithoutParameters);
+    if (!isLinkSupported) return undefined;
+
+    let cachedLinkData = CACHED_LINK_DATA[linkWithoutParameters];
+    if (cachedLinkData) return cachedLinkData;
+
+    // -------------------- //
+    // fetch youtubedl data //
+    // -------------------- //
+
+    const youtubedlOptions = {
+      output: "%(duration>%H:%M:%S)s,%(id)s",
+      print: "%(duration>%H:%M:%S)s,%(id)s",
+      simulate: true,
+      skipDownload: true
+    }
+
+    let youtubedlError; // this library may return undefined with no error thrown ... nice, right?
+    const youtubedlPayload = await youtubedl(linkWithoutParameters, youtubedlOptions).catch(e => {
+      youtubedlError = e.message || "Couldn't get youtubedl payload";
+      if (youtubedlError.includes(linkWithoutParameters)) return;
+      youtubedlError += ` "${linkWithoutParameters}"`;
+    });
+
+    if (!youtubedlPayload) {
+      logger.warn(youtubedlError)
+      return;
+    }
+
+    const endTime = youtubedlPayload.split(",")[0];
+    const id = youtubedlPayload.split(",")[1];
+
+    // ----------------- //
+    // fetch oembed data //
+    // ----------------- //
+
+    let oembedError;
+    const oembedPayload = await oembed.extract(linkWithoutParameters).catch(e => {
+      oembedError = e.message || "Couldn't get oembed payload";
+      if (oembedError.includes(linkWithoutParameters)) return;
+      oembedError += ` "${linkWithoutParameters}"`;
+    });
+
+    if (!oembedPayload) {
+      logger.warn(oembedError);
+      return;
+    }
+
+    const { author_name: originalAuthorName, title: originalTitle } = oembedPayload;
+    const asciiWidthConverter = new AFHConvert();
+
+    // if titles are in "${author} - ${title}" format
+    const splitTitle = originalTitle.split(" - ");
+    const isSplitTitle = splitTitle.length == 2;
+
+    let authorName = isSplitTitle ? splitTitle[0] : originalAuthorName;
+    let title = isSplitTitle ? splitTitle[1] : originalTitle;
+
+    // format author name
+    if (authorName.endsWith(" - Topic")) authorName = authorName.slice(0, -" - Topic".length);
+    authorName = asciiWidthConverter.toHalfWidth(authorName.trim());
+
+    // format title
+    if (title.startsWith(`${originalAuthorName} - `)) title = title.slice(`${originalAuthorName} - `.length);
+    if (title.endsWith(` by ${originalAuthorName}`)) title = title.slice(0, -` by ${originalAuthorName}`.length);
+    if (title.toLowerCase().endsWith(` [official music video]`)) title = title.slice(0, -` [official music video]`.length);
+    if (title.toLowerCase().endsWith(` (official music video)`)) title = title.slice(0, -` (official music video)`.length);
+    if (title.toLowerCase().endsWith(` [official visualizer]`)) title = title.slice(0, -` [official visualizer]`.length);
+    if (title.toLowerCase().endsWith(` (official visualizer)`)) title = title.slice(0, -` (official visualizer)`.length);
+    if (title.toLowerCase().endsWith(` [official audio]`)) title = title.slice(0, -` [official audio]`.length);
+    if (title.toLowerCase().endsWith(` (official audio)`)) title = title.slice(0, -` (official audio)`.length);
+    if (title.toLowerCase().endsWith(` [official]`)) title = title.slice(0, -` [official]`.length);
+    if (title.toLowerCase().endsWith(` (official)`)) title = title.slice(0, -` (official)`.length);
+    if (title.toLowerCase().endsWith(` [lyrics]`)) title = title.slice(0, -` [lyrics]`.length);
+    if (title.toLowerCase().endsWith(` (lyrics)`)) title = title.slice(0, -` (lyrics)`.length);
+    title = asciiWidthConverter.toHalfWidth(title.trim());
+
+    // ----------------------- //
+    // save link data to cache //
+    // ----------------------- //
+
+    CACHED_LINK_DATA[linkWithoutParameters] = new CachedLinkData({ authorName, endTime, title, id, linkWithoutParameters, });
+    return CACHED_LINK_DATA[linkWithoutParameters];
+  }
+  catch(e) {
+    logger.error(e);
+  }
+}
+
+/**
  * Show the popup modal to confirm file deletion from Plex
  * @param {Interaction} interaction
  * @param {string} modalCustomId
@@ -750,6 +717,64 @@ async function startPlexLibraryScan() {
   }
 }
 
+/**
+ * Validate the thread channel information and repair any inconsistencies
+ * @param {CachedLinkData} cachedLinkData
+ * @param {ThreadChannel} threadChannel
+ */
+async function validateThreadChannel(cachedLinkData, threadChannel) {
+  // ----------------------------------------------------------------------- //
+  // validate the thread channel name in case the attached link was modified //
+  // ----------------------------------------------------------------------- //
+
+  const isThreadChannelNameObsolete =
+    threadChannel?.name !== cachedLinkData.threadChannelName;
+
+  if (isThreadChannelNameObsolete) {
+    const obsoleteThreadChannelName = threadChannel.name;
+    await threadChannel.setName(cachedLinkData.threadChannelName);
+    logger.info(`Updated thread name "${obsoleteThreadChannelName}" -> "${cachedLinkData.threadChannelName}"`);
+  }
+
+  // ----------------------------------------------------------------------- //
+  // validate the thread channel plex button shows the local files existence //
+  // ----------------------------------------------------------------------- //
+
+  const { DELETE_FROM_PLEX_BUTTON, IMPORT_MUSIC_INTO_PLEX_BUTTON, SEARCHING_PLEX_BUTTON } = COMPONENT_CUSTOM_IDS;
+  const plexComponentIds = [DELETE_FROM_PLEX_BUTTON, IMPORT_MUSIC_INTO_PLEX_BUTTON, SEARCHING_PLEX_BUTTON];
+
+  const find = ({ components }) => components?.[0]?.components.some(some);
+  const some = ({ customId, type }) => plexComponentIds.includes(customId) && type === ComponentType.Button;
+
+  const messageWithPlexButton = await findChannelMessage(threadChannel.id, find);
+
+  if (messageWithPlexButton) {
+    const isArchived = messageWithPlexButton.channel.archived;
+    if (isArchived) await messageWithPlexButton.channel.setArchived(false);
+
+    const components = [ActionRowBuilder.from(messageWithPlexButton.components[0])];
+    const buttonIndex = messageWithPlexButton.components[0].components.findIndex(some);
+
+    components[0].components[buttonIndex].setCustomId(COMPONENT_CUSTOM_IDS.SEARCHING_PLEX_BUTTON);
+    components[0].components[buttonIndex].setDisabled(true);
+    components[0].components[buttonIndex].setEmoji("⏳");
+    components[0].components[buttonIndex].setLabel("Searching in Plex");
+
+    await messageWithPlexButton.edit({ components });
+
+    const isPlexFile = await getExistingPlexFilename(cachedLinkData);
+    const customId = isPlexFile ? COMPONENT_CUSTOM_IDS.DELETE_FROM_PLEX_BUTTON : COMPONENT_CUSTOM_IDS.IMPORT_MUSIC_INTO_PLEX_BUTTON;
+    const label = isPlexFile ? "Delete from Plex" : "Import into Plex";
+
+    components[0].components[buttonIndex].setCustomId(customId);
+    components[0].components[buttonIndex].setDisabled(false)
+    components[0].components[buttonIndex].setEmoji(config.discord_plex_emoji)
+    components[0].components[buttonIndex].setLabel(label);
+
+    await messageWithPlexButton.edit({ components });
+  }
+}
+
 // ------------------------------------------------------------------------- //
 // >> NEEDS TO BE MOVE                                                    << //
 // ------------------------------------------------------------------------- //
@@ -832,7 +857,7 @@ async function showButtonDocumentation(interaction) {
 //       : await actualMessageWithPlexButton.edit({ components });
 
 //     const isPlexFile = await getExistingPlexFilename(cachedLinkData);
-//     const customId = isPlexFile ? COMPONENT_CUSTOM_IDS.DELETE_FROM_PLEX_BUTTON : COMPONENT_CUSTOM_IDS.IMPORT_INTO_PLEX_BUTTON;
+//     const customId = isPlexFile ? COMPONENT_CUSTOM_IDS.DELETE_FROM_PLEX_BUTTON : COMPONENT_CUSTOM_IDS.IMPORT_MUSIC_INTO_PLEX_BUTTON;
 //     const label = isPlexFile ? "Delete from Plex" : "Import into Plex";
 
 //     components[0].components[buttonIndex].setCustomId(customId);

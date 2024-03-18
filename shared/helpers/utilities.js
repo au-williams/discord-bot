@@ -85,22 +85,26 @@ export function getLeastFrequentlyOccurringStrings(stringArray) {
  * Extract a link from a string
  * `"foo http://youtu.be/w?v=a&b=c bar"` -> `"http://youtu.be/w?v=a&b=c"`
  * @param {string} string
+ * @param {bool} ignoreCodeBlocks
  * @returns {string}
  */
-export function getLinkFromString(string) {
+export function getLinkFromString(string, ignoreCodeBlocks = true) {
+  if (ignoreCodeBlocks) string = string.replace(/```[\s\S]*?```/g, "");
   const match = string.match(/(https?:\/\/[^\s]+)/g);
-  return match?.length ? match[0] : null;
+  return match.length ? match[0] : null;
 }
 
 /**
  * Extract a link from a string with its parameters removed
  * `"foo http://youtu.be/w?v=a&b=c bar"` -> `"http://youtu.be/w?v=a"`
  * @param {string} string
+ * @param {bool} ignoreCodeBlocks
  * @returns {string}
  */
-export function getLinkWithoutParametersFromString(string) {
+export function getLinkWithoutParametersFromString(string, ignoreCodeBlocks = true) {
+  if (ignoreCodeBlocks) string = string.replace(/```[\s\S]*?```/g, "");
   const match = string.match(/(https?:\/\/[^&\s]+)/g);
-  return match?.length ? match[0] : null;
+  return match.length ? match[0] : null;
 }
 
 /**
