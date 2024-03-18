@@ -91,7 +91,7 @@ export function getLeastFrequentlyOccurringStrings(stringArray) {
 export function getLinkFromString(string, ignoreCodeBlocks = true) {
   if (ignoreCodeBlocks) string = string.replace(/```[\s\S]*?```/g, "");
   const match = string.match(/(https?:\/\/[^\s]+)/g);
-  return match.length ? match[0] : null;
+  return match?.length ? match[0] : null;
 }
 
 /**
@@ -104,7 +104,7 @@ export function getLinkFromString(string, ignoreCodeBlocks = true) {
 export function getLinkWithoutParametersFromString(string, ignoreCodeBlocks = true) {
   if (ignoreCodeBlocks) string = string.replace(/```[\s\S]*?```/g, "");
   const match = string.match(/(https?:\/\/[^&\s]+)/g);
-  return match.length ? match[0] : null;
+  return match?.length ? match[0] : null;
 }
 
 /**
