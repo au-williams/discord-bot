@@ -1,6 +1,6 @@
 import { AttachmentBuilder, EmbedBuilder } from "discord.js";
 import { Cron } from "croner";
-import { fetchRetryPolicy } from "../shared/helpers/constants.js";
+import { fetchRetryPolicy } from "../constants.js";
 import { findChannelMessage } from "../index.js";
 import { getCronOptions, getStringWithoutEmojis, getTruncatedStringTerminatedByChar, getTruncatedStringTerminatedByWord } from "../shared/helpers/utilities.js";
 import { tryDeleteMessageThread } from "../shared/helpers/discord.js";
