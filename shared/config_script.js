@@ -4,7 +4,7 @@ import { filterChannelMessages, findChannelMessage } from "../index.js";
 import { getAvailableFilepath, splitJsonStringByLength, tryParseStringToObject } from "./helpers/utilities.js";
 import { tryDeleteMessageThread } from "./helpers/discord.js";
 import fs from "fs-extra";
-import Logger from "./logger.js";
+import Logger from "./logger_script.js";
 
 const { discord_config_channel_id } = fs.readJsonSync("./config.json");
 

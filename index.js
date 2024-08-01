@@ -1,7 +1,7 @@
 import { Client, Events, GatewayIntentBits, Partials, REST, Routes } from "discord.js";
 import { getFormattedRoles, getPluralizedString } from "./shared/helpers/utilities.js";
 import fs from "fs-extra";
-import Logger from "./shared/logger.js";
+import Logger from "./shared/logger_script.js";
 
 const {
   discord_bot_login_token,
@@ -302,7 +302,7 @@ async function initializePlugins() {
     }
   }
 
-  await import(`./shared/config.js`).then(instance => INITIALIZED_PLUGINS.push({ filename: "config.js", instance }))
+  await import(`./shared/config_script.js`).then(instance => INITIALIZED_PLUGINS.push({ filename: "config.js", instance }))
 }
 
 /**
