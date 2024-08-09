@@ -67,6 +67,71 @@ export default class Utilities {
   }
 
   /**
+   * Get the percentage of the partial value from the total value
+   * @param {number} partialValue
+   * @param {number} totalValue
+   * @returns {number}
+   */
+  static getPercentage(partialValue, totalValue) {
+    if (!totalValue) return NaN;
+    return (100 * partialValue) / totalValue;
+  }
+
+  /**
+   * Get a pluralized string if the count is not 1
+   * @param {string} string The string to pluralize `(ex. "Apple")`
+   * @param {number} count The count to compare with `(ex. 6)`
+   * @returns {string} The pluralized string `(ex. "Apples")`
+   */
+  static getPluralizedString(string, count) {
+    return count != 1 ? `${string}s` : string;
+  }
+
+  /**
+   * Get the string with all emojis removed
+   * @param {string} string
+   * @returns {string}
+   */
+  static getStringWithoutEmojis(string) {
+    const matches = string.matchAll(emojiRegex());
+    for (const match of matches) string = string.replace(match[0], '');
+    return string;
+  }
+
+  /**
+   * Splits a string by the desired size of returned items
+   * (Example 1: "aabbccdd", 2 => ["aa", "bb", "cc", "dd"])
+   * (Example 2: "abcdefgh", 3 => ["abc", "def", "gh"])
+   * TODO: this function is funky, maybe simplify it and invoke for each split new line
+   * TODO: getSplitStringByLength
+   * @param {string} str
+   * @param {number} length
+   * @returns {string[]}
+   */
+  static getSplitJsonStringByLength(jsonString, length) {
+    const splitLines = jsonString.split("\n");
+    const resultLines = [""];
+
+    for(const splitLine of splitLines) {
+      const i = resultLines.length - 1;
+      const appendedResultLine = resultLines[i] ? `${resultLines[i]}\n${splitLine}` : splitLine;
+      if (appendedResultLine.length <= length) resultLines[i] = appendedResultLine;
+      else resultLines.push(splitLine);
+    }
+
+    return resultLines;
+  }
+
+  /**
+   * Get the total seconds from a HH:MM:SS formatted timestamp
+   * @param {string} timestamp HH:MM:SS timestamp
+   */
+  static getTimestampAsTotalSeconds(timestamp) {
+    const time = timestamp.split(":");
+    return (+time[0]) * 60 * 60 + (+time[1]) * 60 + (+time[2]);
+  }
+
+  /**
    * Truncate a string to the maximum allowed size terminated on the char of that index.
    * Example: `("the quick brown fox", 12)` => `"the quick br..."`
    * @param {string} string
@@ -142,7 +207,7 @@ export default class Utilities {
 
 /**
  * Import any JavaScript files in the directory that export the events object
- * @returns {String[]} `["./plugins/example_script.js"]`
+ * @returns {string[]} `["./plugins/example_script.js"]`
  */
 export async function importEventsFromDirectory(directory) {
   const scriptFilepaths = fs
@@ -231,8 +296,8 @@ export const getCronOptions = (logger, appendedJobName = "") => {
  * Gets the least frequently occurring strings in the string array.
  * (Example 1: ['a', 'a', 'b', 'b', 'c', 'c', 'c'] => ['a', 'b'])
  * (Example 2: ['a', 'a', 'b', 'b'] => ['a', 'b'])
- * @param {String[]} stringArray
- * @returns {String[]}
+ * @param {string[]} stringArray
+ * @returns {string[]}
  */
 export function getLeastFrequentlyOccurringStrings(stringArray) {
   const frequency = {};
@@ -243,10 +308,6 @@ export function getLeastFrequentlyOccurringStrings(stringArray) {
   return result;
 }
 
-export function getPercentage(partialValue, totalValue) {
-  return (100 * partialValue) / totalValue;
-}
-
 /**
  * Get the filename of where this function is invoked
  * @param {string} importMetaUrl import.meta.url
@@ -254,15 +315,6 @@ export function getPercentage(partialValue, totalValue) {
  */
 export function getPluginFilename(importMetaUrl) {
   return basename(fileURLToPath(importMetaUrl));
-}
-
-/**
- * Get the total seconds from a HH:MM:SS formatted timestamp
- * @param {string} timestamp HH:MM:SS timestamp
- */
-export function getTimestampAsTotalSeconds(timestamp) {
-  const time = timestamp.split(":");
-  return (+time[0]) * 60 * 60 + (+time[1]) * 60 + (+time[2]);
 }
 
 /**
@@ -302,28 +354,6 @@ export function getAvailableFilepath(filepath) {
 }
 
 /**
- * Splits a string by the desired size of returned items
- * (Example 1: "aabbccdd", 2 => ["aa", "bb", "cc", "dd"])
- * (Example 2: "abcdefgh", 3 => ["abc", "def", "gh"])
- * @param {string} str
- * @param {Number} length
- * @returns {String[]}
- */
-export function splitJsonStringByLength(jsonString, length) {
-  const splitLines = jsonString.split("\n");
-  const resultLines = [""];
-
-  for(const splitLine of splitLines) {
-    const i = resultLines.length - 1;
-    const appendedResultLine = resultLines[i] ? `${resultLines[i]}\n${splitLine}` : splitLine;
-    if (appendedResultLine.length <= length) resultLines[i] = appendedResultLine;
-    else resultLines.push(splitLine);
-  }
-
-  return resultLines;
-}
-
-/**
  * Amazing how there's not a better way of determining if a string is valid JSON or not. Try/catch here we come!
  *   Btw the "is-json" NPM package doesn't work. It's not trash because with trash you know what you're getting.
  *   It's worse than trash because it makes you think it works until it doesn't and causes a ton of file issues.
@@ -344,21 +374,9 @@ export function tryParseStringToObject(jsonString){
   catch (e) { }
 }
 
-/**
- * Get a pluralized string if the count is not 1
- * @param {string} string The string to pluralize `(ex. "Apple")`
- * @param {number} count The count to compare with `(ex. 6)`
- * @returns {string} The pluralized string `(ex. "Apples")`
- */
-export function getPluralizedString(string, count) {
-  return count != 1 ? `${string}s` : string;
-}
 
-export function getStringWithoutEmojis(string) {
-  const matches = string.matchAll(emojiRegex());
-  for (const match of matches) string = string.replace(match[0], '');
-  return string;
-}
+
+
 
 export function getIsPunctuatedString(string) {
   const punctuations = [".", ".\"", ",", ";", ":", "!", "?", "-", "(", ")", "[", "]", "{", "}"];
@@ -376,7 +394,7 @@ export const fetchRetryPolicy = Object.freeze({
 
 /**
  * Format the role ids to display as clickable member roles in a Discord message
- * @param {String[]} array An unformatted string array of member role ids
+ * @param {string[]} array An unformatted string array of member role ids
  * @returns {any} A formatted string array of member role ids
  */
 export function getFormattedRoles(array) {

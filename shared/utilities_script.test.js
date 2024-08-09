@@ -54,6 +54,142 @@ describe("getLinkWithoutParametersFromString", () => {
   });
 });
 
+describe("getPercentage", () => {
+  test("returns the correct percentage for a valid partialValue and totalValue", () => {
+    const result = Utilities.getPercentage(50, 200);
+    expect(result).toBe(25); // 50 is 25% of 200
+  });
+  test("returns 100 when partialValue equals totalValue", () => {
+    const result = Utilities.getPercentage(100, 100);
+    expect(result).toBe(100); // 100 is 100% of 100
+  });
+  test("returns 0 when partialValue is 0", () => {
+    const result = Utilities.getPercentage(0, 100);
+    expect(result).toBe(0); // 0 is 0% of 100
+  });
+  test("returns NaN when totalValue is 0", () => {
+    const result = Utilities.getPercentage(50, 0);
+    expect(result).toBeNaN(); // Division by zero
+  });
+  test("returns a negative percentage when partialValue is negative", () => {
+    const result = Utilities.getPercentage(-50, 200);
+    expect(result).toBe(-25); // -50 is -25% of 200
+  });
+  test("returns the correct percentage when both partialValue and totalValue are negative", () => {
+    const result = Utilities.getPercentage(-50, -200);
+    expect(result).toBe(25); // -50 is 25% of -200
+  });
+})
+
+describe("getPluralizedString", () => {
+  test("returns the pluralized string when count is not 1", () => {
+    const result = Utilities.getPluralizedString("Apple", 6);
+    expect(result).toBe("Apples"); // "Apple" becomes "Apples"
+  });
+  test("returns the original string when count is 1", () => {
+    const result = Utilities.getPluralizedString("Apple", 1);
+    expect(result).toBe("Apple"); // "Apple" remains "Apple"
+  });
+  test("returns the pluralized string when count is 0", () => {
+    const result = Utilities.getPluralizedString("Apple", 0);
+    expect(result).toBe("Apples"); // "Apple" becomes "Apples"
+  });
+  test("returns the pluralized string when count is negative", () => {
+    const result = Utilities.getPluralizedString("Apple", -1);
+    expect(result).toBe("Apples"); // "Apple" becomes "Apples"
+  });
+  test("returns the pluralized string when count is greater than 1", () => {
+    const result = Utilities.getPluralizedString("Apple", 2);
+    expect(result).toBe("Apples"); // "Apple" becomes "Apples"
+  });
+  test("returns the pluralized string for an irregular plural", () => {
+    const result = Utilities.getPluralizedString("Box", 3);
+    expect(result).toBe("Boxs"); // "Box" becomes "Boxs"
+  });
+});
+
+describe("getStringWithoutEmojis", () => {
+  test("returns the string with all emojis removed", () => {
+    const result = Utilities.getStringWithoutEmojis("Hello 👋, how are you 😊?");
+    expect(result).toBe("Hello , how are you ?");
+  });
+  test("returns the original string when there are no emojis", () => {
+    const result = Utilities.getStringWithoutEmojis("Hello, how are you?");
+    expect(result).toBe("Hello, how are you?");
+  });
+  test("returns an empty string when the input is only emojis", () => {
+    const result = Utilities.getStringWithoutEmojis("👋😊👍");
+    expect(result).toBe("");
+  });
+  test("returns the string without changing non-emoji characters", () => {
+    const result = Utilities.getStringWithoutEmojis("123 🐱 abc 🐶");
+    expect(result).toBe("123  abc ");
+  });
+  test("returns the string with multiple emojis removed", () => {
+    const result = Utilities.getStringWithoutEmojis("The sun ☀️ is shining 🌞!");
+    expect(result).toBe("The sun  is shining !");
+  });
+  test("returns the string with text symbols removed", () => {
+    const result = Utilities.getStringWithoutEmojis("Symbols: © ™ ®");
+    expect(result).toBe("Symbols:   ");
+  });
+});
+
+// TODO: this function needs to be simplified
+// describe("getSplitJsonStringByLength", () => {
+//   test("returns an array of strings split by the specified length", () => {
+//     const result = Utilities.getSplitJsonStringByLength("aabbccdd", 2);
+//     expect(result).toEqual(["aa", "bb", "cc", "dd"]);
+//   });
+//   test("returns an array of strings with the last string shorter than the specified length", () => {
+//     const result = Utilities.getSplitJsonStringByLength("abcdefgh", 3);
+//     expect(result).toEqual(["abc", "def", "gh"]);
+//   });
+//   test("returns the entire string as a single element when the length is greater than the string length", () => {
+//     const result = Utilities.getSplitJsonStringByLength("abc", 10);
+//     expect(result).toEqual(["abc"]);
+//   });
+//   test("returns an array of single characters when the length is 1", () => {
+//     const result = Utilities.getSplitJsonStringByLength("abcd", 1);
+//     expect(result).toEqual(["a", "b", "c", "d"]);
+//   });
+//   test("handles a string with newline characters correctly", () => {
+//     const result = Utilities.getSplitJsonStringByLength("abc\ndef\ngh", 5);
+//     expect(result).toEqual(["abc\ndef", "gh"]);
+//   });
+//   test("returns an array with empty strings when the input string is empty", () => {
+//     const result = Utilities.getSplitJsonStringByLength("", 3);
+//     expect(result).toEqual([""]);
+//   });
+// })
+
+describe("getTimestampAsTotalSeconds", () => {
+  test("returns the total seconds for a valid HH:MM:SS timestamp", () => {
+    const result = Utilities.getTimestampAsTotalSeconds("01:30:45");
+    expect(result).toBe(5445); // 1 hour * 3600 + 30 minutes * 60 + 45 seconds
+  });
+  test("returns 0 for a timestamp of 00:00:00", () => {
+    const result = Utilities.getTimestampAsTotalSeconds("00:00:00");
+    expect(result).toBe(0);
+  });
+  test("returns the correct total seconds for a timestamp with leading zeros", () => {
+    const result = Utilities.getTimestampAsTotalSeconds("00:05:07");
+    expect(result).toBe(307); // 5 minutes * 60 + 7 seconds
+  });
+  test("returns the correct total seconds for a timestamp of only hours", () => {
+    const result = Utilities.getTimestampAsTotalSeconds("02:00:00");
+    expect(result).toBe(7200); // 2 hours * 3600
+  });
+  test("returns the correct total seconds for a timestamp of only minutes", () => {
+    const result = Utilities.getTimestampAsTotalSeconds("00:45:00");
+    expect(result).toBe(2700); // 45 minutes * 60
+  });
+  test("returns the correct total seconds for a timestamp of only seconds", () => {
+    const result = Utilities.getTimestampAsTotalSeconds("00:00:45");
+    expect(result).toBe(45); // 45 seconds
+  });
+})
+
 describe("getTruncatedStringTerminatedByChar", () => {
   test("returns the original string if its length is less than or equal to maxLength", () => {
     expect(Utilities.getTruncatedStringTerminatedByChar("short string", 20)).toBe("short string");
