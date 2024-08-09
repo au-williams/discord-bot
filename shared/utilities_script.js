@@ -1,14 +1,13 @@
 import { basename, dirname, extname } from "path";
-import { ButtonBuilder, ButtonStyle } from "discord.js";
 import { fileURLToPath } from "url";
-import { getAverageColor } from 'fast-average-color-node';
-import { nanoid } from 'nanoid'
+import { getAverageColor } from "fast-average-color-node";
+import { nanoid } from "nanoid";
 import { scheduledJobs } from "croner";
 import Downloader from "nodejs-file-downloader";
 import emojiRegex from "emoji-regex";
 import fs from "fs-extra";
 import sharp from "sharp";
-import Vibrant from 'node-vibrant'
+import Vibrant from "node-vibrant";
 
 export default class Utilities {
   // static { temp_directory } = fs.readJsonSync("config.json");
@@ -24,21 +23,56 @@ export default class Utilities {
    * @returns {bool}
    */
   static async deleteMessageThread({ channelIds, starterMessage }) {
-    try {
-      const isAllowedChannel = channelIds.includes(starterMessage.channel.id);
-      const isValidOperation = isAllowedChannel && starterMessage.thread;
-      if (isValidOperation) {
-        await starterMessage.thread.delete();
-        // todo: log
-        // logger.info(`Deleted thread with starter message "${starterMessage.id}"`);
-      }
-      return isValidOperation;
+    const isAllowedChannel = channelIds.includes(starterMessage.channel.id);
+    const isValidOperation = isAllowedChannel && starterMessage.thread;
+    if (isValidOperation) {
+      await starterMessage.thread.delete();
+      // logger.info(`Deleted thread with starter message "${starterMessage.id}"`);
+      // TODO: log
     }
-    catch(e) {
-      logger.error(e);
-      return false;
-    }
+    return isValidOperation;
   }
+
+  /**
+   * Create a temporary download of the destination file and process it with getAverageColor
+   * @param {string} url
+   * @returns {FastAverageColorResult}
+   */
+  static async getAverageColorFromUrl(url) {
+    const tempDownloadDirectory = `${temp_directory}\\${nanoid()}`;
+    const downloader = new Downloader({ url, directory: tempDownloadDirectory });
+    const { filePath: tempDownloadFilePath } = await downloader.download();
+    const averageColor = await getAverageColor(tempDownloadFilePath);
+    // todo: has issues with file locking that need resolving
+    // https://stackoverflow.com/questions/20796902/deleting-file-in-node-js
+    // fs.removeSync(tempDownloadDirectory);
+    return averageColor;
+  };
+
+static getVibrantColorFromUrl = async url => {
+  // download the file
+  const tempDownloadDirectory = `${temp_directory}\\${nanoid()}`;
+  const downloader = new Downloader({ url, directory: tempDownloadDirectory });
+  let { filePath: tempDownloadFilePath } = await downloader.download();
+
+  // convert the file if it's .webp (Vibrant does not support it)
+  if (tempDownloadFilePath.endsWith(".webp")) {
+    const ext = extname(tempDownloadFilePath);
+    const base = basename(tempDownloadFilePath, ext);
+    const webpTempDownloadFilePath = tempDownloadFilePath;
+    tempDownloadFilePath = `${tempDownloadDirectory}\\${base}.png`;
+    await sharp(webpTempDownloadFilePath).toFormat("png").toFile(tempDownloadFilePath);
+  }
+
+  // extract the vibrant color
+  const vibrantColor = await new Vibrant(tempDownloadFilePath).getPalette();
+  const { LightVibrant, LightMuted, DarkVibrant, DarkMuted } = vibrantColor;
+  // todo: has issues with file locking that need resolving
+  // https://stackoverflow.com/questions/20796902/deleting-file-in-node-js
+  // fs.removeSync(tempDownloadDirectory);
+
+  return LightMuted?.hex || LightVibrant?.hex || DarkVibrant?.hex || DarkMuted?.hex;
+};
 
   /**
    * Format the role ids to display as clickable member roles in a Discord message
@@ -57,16 +91,15 @@ export default class Utilities {
    * @param {string} jsonString
    * @returns {string?}
    */
-  static getParsedJsonString(jsonString){
+  static getParsedJsonString(jsonString) {
     try {
-        const o = JSON.parse(jsonString);
-        // Handle non-exception-throwing cases:
-        // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
-        // but... JSON.parse(null) returns null, and typeof null === "object",
-        // so we must check for that, too. Thankfully, null is falsey, so this suffices:
-        if (o && typeof o === "object") return o;
-    }
-    catch (e) {
+      const o = JSON.parse(jsonString);
+      // Handle non-exception-throwing cases:
+      // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+      // but... JSON.parse(null) returns null, and typeof null === "object",
+      // so we must check for that, too. Thankfully, null is falsey, so this suffices:
+      if (o && typeof o === "object") return o;
+    } catch (e) {
       return undefined;
     }
   }
@@ -126,7 +159,7 @@ export default class Utilities {
    */
   static getStringWithoutEmojis(string) {
     const matches = string.matchAll(emojiRegex());
-    for (const match of matches) string = string.replace(match[0], '');
+    for (const match of matches) string = string.replace(match[0], "");
     return string;
   }
 
@@ -144,7 +177,7 @@ export default class Utilities {
     const splitLines = jsonString.split("\n");
     const resultLines = [""];
 
-    for(const splitLine of splitLines) {
+    for (const splitLine of splitLines) {
       const i = resultLines.length - 1;
       const appendedResultLine = resultLines[i] ? `${resultLines[i]}\n${splitLine}` : splitLine;
       if (appendedResultLine.length <= length) resultLines[i] = appendedResultLine;
@@ -160,7 +193,7 @@ export default class Utilities {
    */
   static getTimestampAsTotalSeconds(timestamp) {
     const time = timestamp.split(":");
-    return (+time[0]) * 60 * 60 + (+time[1]) * 60 + (+time[2]);
+    return +time[0] * 60 * 60 + +time[1] * 60 + +time[2];
   }
 
   /**
@@ -190,7 +223,7 @@ export default class Utilities {
     let result = words.shift();
 
     for (const word of words) {
-      if ((`${result} ${word}`).length > maxLength - 6) {
+      if (`${result} ${word}`.length > maxLength - 6) {
         result += ` [...]`;
         break;
       }
@@ -227,11 +260,13 @@ export default class Utilities {
    * https://stackoverflow.com/questions/175739/how-can-i-check-if-a-string-is-a-valid-number
    * @param {string} str
    * @returns {bool}
-  */
- static isNumericString(str) {
+   */
+  static isNumericString(str) {
     if (typeof str != "string") return false; // we only process strings!
-    return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
-          !isNaN(parseFloat(str)); // ...and ensure strings of whitespace fail
+    return (
+      !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+      !isNaN(parseFloat(str))
+    ); // ...and ensure strings of whitespace fail
   }
 
   /**
@@ -240,8 +275,8 @@ export default class Utilities {
    * @returns {bool}
    */
   static isPunctuatedString(string) {
-    string = string.replaceAll("\"", "").replaceAll("'", ""); // ignore trailing quotation marks
-    const punctuations = [".", ".\"", ",", ";", ":", "!", "?", "-", "(", ")", "[", "]", "{", "}"];
+    string = string.replaceAll('"', "").replaceAll("'", ""); // ignore trailing quotation marks
+    const punctuations = [".", '."', ",", ";", ":", "!", "?", "-", "(", ")", "[", "]", "{", "}"];
     return punctuations.some(punctuation => string.endsWith(punctuation));
   }
 }
@@ -260,53 +295,13 @@ export async function importEventsFromDirectory(directory) {
 
   const events = new Map();
 
-  for(const filepath of scriptFilepaths) {
+  for (const filepath of scriptFilepaths) {
     const instance = await import(filepath);
     const isAnyMap = instance.events instanceof Map && instance.events.size;
     if (isAnyMap) events.set(filepath, instance.events);
   }
 
   return events;
-}
-
-/**
- * Create a temporary download of the destination file to process with getAverageColor
- * @param {string} url
- */
-export const getAverageColorFromUrl = async url => {
-  const tempDownloadDirectory = `${temp_directory}\\${nanoid()}`;
-  const downloader = new Downloader({ url, directory: tempDownloadDirectory });
-  const { filePath: tempDownloadFilePath } = await downloader.download();
-  const averageColor = await getAverageColor(tempDownloadFilePath);
-  // todo: has issues with file locking that need resolving
-  // https://stackoverflow.com/questions/20796902/deleting-file-in-node-js
-  // fs.removeSync(tempDownloadDirectory);
-  return averageColor;
-}
-
-export const getVibrantColorFromUrl = async url => {
-  // download the file
-  const tempDownloadDirectory = `${temp_directory}\\${nanoid()}`;
-  const downloader = new Downloader({ url, directory: tempDownloadDirectory });
-  let { filePath: tempDownloadFilePath } = await downloader.download();
-
-  // convert the file if it's .webp (Vibrant does not support it)
-  if (tempDownloadFilePath.endsWith(".webp")) {
-    const ext = extname(tempDownloadFilePath);
-    const base = basename(tempDownloadFilePath, ext);
-    const webpTempDownloadFilePath = tempDownloadFilePath;
-    tempDownloadFilePath = `${tempDownloadDirectory}\\${base}.png`;
-    await sharp(webpTempDownloadFilePath).toFormat('png').toFile(tempDownloadFilePath);
-  }
-
-  // extract the vibrant color
-  const vibrantColor = await new Vibrant(tempDownloadFilePath).getPalette();
-  const { LightVibrant, LightMuted, DarkVibrant, DarkMuted } = vibrantColor;
-  // todo: has issues with file locking that need resolving
-  // https://stackoverflow.com/questions/20796902/deleting-file-in-node-js
-  // fs.removeSync(tempDownloadDirectory);
-
-  return LightMuted?.hex || LightVibrant?.hex|| DarkVibrant?.hex || DarkMuted?.hex
 }
 
 /**
@@ -318,13 +313,15 @@ export const getVibrantColorFromUrl = async url => {
  * @param {string?} appendedJobName
  */
 export const getCronOptions = (logger, appendedJobName = "") => {
-  let name = `${logger.filename}${(appendedJobName ? " ":"")}${appendedJobName}`;
+  let name = `${logger.filename}${appendedJobName ? " " : ""}${appendedJobName}`;
   let isDuplicateName = scheduledJobs.find(job => job.name === name);
 
   while (isDuplicateName) {
     const split = name.split(" ");
     const counter = split.pop().replace("(", "").replace(")", "");
-    name = getIsNumericString(counter) ? `${split.join(" ")} (${parseInt(counter) + 1})` : `${name} (1)`;
+    name = getIsNumericString(counter)
+      ? `${split.join(" ")} (${parseInt(counter) + 1})`
+      : `${name} (1)`;
     isDuplicateName = scheduledJobs.find(job => job.name === name);
   }
 
@@ -332,8 +329,8 @@ export const getCronOptions = (logger, appendedJobName = "") => {
     catch: e => logger.error(e),
     name,
     protect: true
-  }
-}
+  };
+};
 
 /**
  * Gets the least frequently occurring strings in the string array.
@@ -374,14 +371,17 @@ export function getAvailableFilename(filepath) {
   if (!fs.existsSync(filepath)) return filename + extension;
 
   const directory = dirname(filepath);
-  const nextNumber = fs.readdirSync(directory).filter(fn => fn.includes(filename)).reduce((prev, fn) => {
-    const match = fn.match(/\((\d+)\)/);
-    return match ? Math.max(prev, match[1]) : prev;
-  }, 0) + 1;
+  const nextNumber =
+    fs
+      .readdirSync(directory)
+      .filter(fn => fn.includes(filename))
+      .reduce((prev, fn) => {
+        const match = fn.match(/\((\d+)\)/);
+        return match ? Math.max(prev, match[1]) : prev;
+      }, 0) + 1;
 
   return `${filename} (${nextNumber})${extension}`;
 }
-
 
 /**
  * Gets the first unique filename for a filepath. If the filepath "c:\readme.md" is provided and
@@ -403,7 +403,7 @@ export const fetchRetryPolicy = Object.freeze({
   retries: 10,
   retryDelay: 1000,
   retryOn: [501, 502, 503]
-})
+});
 
 /**
  * Get the existing thread or create one if it doesn't exist
@@ -422,7 +422,7 @@ export async function getOrCreateThreadChannel({ starterMessage, clientOptions, 
   if (clientOptions.removeMembers) {
     const fetchedMembers = await threadChannel.members.fetch();
     const removedMemberIds = fetchedMembers.filter(({ user }) => !user.bot).map(({ id }) => id);
-    for(const id of removedMemberIds) await threadChannel.members.remove(id);
+    for (const id of removedMemberIds) await threadChannel.members.remove(id);
   }
 
   return threadChannel;
