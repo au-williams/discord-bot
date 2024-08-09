@@ -10,11 +10,12 @@ import fs from "fs-extra";
 import sharp from "sharp";
 import Vibrant from 'node-vibrant'
 
-const { temp_directory } = fs.readJsonSync("config.json");
-
 export default class Utilities {
+  // static { temp_directory } = fs.readJsonSync("config.json");
+  static temp_directory = fs.readJsonSync("config.json").temp_directory;
+
   /**
-   * Safely deletes the child thread when a starter message is deleted
+   * Deletes the child thread if the starter message channel is in the channel ids
    * TODO: unit test
    * @param {Object} param
    * @param {string[]} param.channelIds
@@ -37,6 +38,15 @@ export default class Utilities {
       logger.error(e);
       return false;
     }
+  }
+
+  /**
+   * Format the role ids to display as clickable member roles in a Discord message
+   * @param {string[]} array An unformatted string array of member role ids
+   * @returns {any} A formatted string array of member role ids
+   */
+  static getFormattedRoles(array) {
+    return array.map(item => `<@&${item}>`);
   }
 
   /**
@@ -200,6 +210,17 @@ export default class Utilities {
     if (typeof str != "string") return false; // we only process strings!
     return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
           !isNaN(parseFloat(str)); // ...and ensure strings of whitespace fail
+  }
+
+  /**
+   * Checks if the string ends with a punctuation character
+   * @param {string} string
+   * @returns {bool}
+   */
+  static isPunctuatedString(string) {
+    string = string.replaceAll("\"", "").replaceAll("'", ""); // ignore trailing quotation marks
+    const punctuations = [".", ".\"", ",", ";", ":", "!", "?", "-", "(", ")", "[", "]", "{", "}"];
+    return punctuations.some(punctuation => string.endsWith(punctuation));
   }
 }
 
@@ -374,15 +395,6 @@ export function tryParseStringToObject(jsonString){
   catch (e) { }
 }
 
-
-
-
-
-export function getIsPunctuatedString(string) {
-  const punctuations = [".", ".\"", ",", ";", ":", "!", "?", "-", "(", ")", "[", "]", "{", "}"];
-  return punctuations.some(punctuation => string.endsWith(punctuation));
-}
-
 /**
  * The retry policy for the `fetch-retry` NPM package
  */
@@ -392,49 +404,6 @@ export const fetchRetryPolicy = Object.freeze({
   retryOn: [501, 502, 503]
 })
 
-/**
- * Format the role ids to display as clickable member roles in a Discord message
- * @param {string[]} array An unformatted string array of member role ids
- * @returns {any} A formatted string array of member role ids
- */
-export function getFormattedRoles(array) {
-  return array.map(item => `<@&${item}>`);
-}
-
-// ------------------ discord file
-
-
-/**
- * Get the "Delete from Plex" button component
- * @param {string} componentCustomId
- * @param {string} emojiId
- * @returns {ButtonComponent}
- */
-export function getDeleteFromPlexButton(componentCustomId, emojiId) {
-  const button = new ButtonBuilder();
-  button.setCustomId(componentCustomId);
-  button.setDisabled(false);
-  button.setEmoji(emojiId);
-  button.setLabel("Delete from Plex");
-  button.setStyle(ButtonStyle.Secondary);
-  return button;
-}
-
-/**
- * Get the "Import into Plex" button component
- * @param {string} componentCustomId
- * @param {string} emojiId
- * @returns {ButtonComponent}
- */
-export function getImportIntoPlexButton(componentCustomId, emojiId) {
-  const button = new ButtonBuilder();
-  button.setCustomId(componentCustomId);
-  button.setDisabled(false);
-  button.setEmoji(emojiId);
-  button.setLabel("Import into Plex");
-  button.setStyle(ButtonStyle.Secondary);
-  return button;
-}
 
 /**
  * Get the existing thread or create one if it doesn't exist
@@ -457,19 +426,4 @@ export async function getOrCreateThreadChannel({ starterMessage, clientOptions, 
   }
 
   return threadChannel;
-}
-
-/**
- * Get the "Searching in Plex" button component
- * @param {string} componentCustomId
- * @returns {ButtonComponent}
- */
-export function getSearchingPlexButton(componentCustomId) {
-  const button = new ButtonBuilder();
-  button.setCustomId(componentCustomId);
-  button.setDisabled(true);
-  button.setEmoji("⏳");
-  button.setLabel("Searching in Plex");
-  button.setStyle(ButtonStyle.Secondary);
-  return button;
 }

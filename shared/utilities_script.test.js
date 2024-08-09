@@ -1,5 +1,20 @@
 import Utilities from "./utilities_script";
 
+describe('getFormattedRoles', () => {
+  test('returns a formatted string array of member role ids', () => {
+    const result = Utilities.getFormattedRoles(['123456789', '987654321']);
+    expect(result).toEqual(['<@&123456789>', '<@&987654321>']);
+  });
+  test('returns an empty array when given an empty input array', () => {
+    const result = Utilities.getFormattedRoles([]);
+    expect(result).toEqual([]);
+  });
+  test('returns a correctly formatted array when given a single role id', () => {
+    const result = Utilities.getFormattedRoles(['123456789']);
+    expect(result).toEqual(['<@&123456789>']);
+  });
+});
+
 describe("getLinkFromString", () => {
   test("returns the first link when present in the string", () => {
     const result = Utilities.getLinkFromString("foo http://youtu.be/w?v=a&b=c bar");
@@ -329,4 +344,26 @@ describe("isNumericString", () => {
     // expect(Utilities.isNumericString("-Infinity")).toBe(false);
     // expect(Utilities.isNumericString("0x123")).toBe(false);
   // });
+});
+
+describe('isPunctuatedString', () => {
+  test('returns true if the string ends with a period', () => {
+    const result = Utilities.isPunctuatedString('This is a sentence.');
+    expect(result).toBe(true);
+  });
+
+  test('returns true if the string ends with a quotation mark following a period', () => {
+    const result = Utilities.isPunctuatedString('He said, "Hello."');
+    expect(result).toBe(true);
+  });
+
+  test('returns true if the string ends with a closing bracket', () => {
+    const result = Utilities.isPunctuatedString('Array [1, 2, 3]');
+    expect(result).toBe(true);
+  });
+
+  test('returns true if the string ends with a closing brace', () => {
+    const result = Utilities.isPunctuatedString('Object { key: "value" }');
+    expect(result).toBe(true);
+  });
 });
