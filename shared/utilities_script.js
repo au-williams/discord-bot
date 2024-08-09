@@ -1,4 +1,5 @@
 import { basename, dirname, extname } from "path";
+import { ButtonBuilder, ButtonStyle } from "discord.js";
 import { fileURLToPath } from "url";
 import { getAverageColor } from 'fast-average-color-node';
 import { nanoid } from 'nanoid'
@@ -8,10 +9,157 @@ import emojiRegex from "emoji-regex";
 import fs from "fs-extra";
 import sharp from "sharp";
 import Vibrant from 'node-vibrant'
-import { ButtonBuilder, ButtonStyle } from "discord.js";
-
 
 const { temp_directory } = fs.readJsonSync("config.json");
+
+export default class Utilities {
+  /**
+   * Safely deletes the child thread when a starter message is deleted
+   * TODO: unit test
+   * @param {Object} param
+   * @param {string[]} param.channelIds
+   * @param {Logger} param.logger
+   * @param {Message} param.starterMessage
+   * @returns {bool}
+   */
+  static async deleteMessageThread({ channelIds, starterMessage }) {
+    try {
+      const isAllowedChannel = channelIds.includes(starterMessage.channel.id);
+      const isValidOperation = isAllowedChannel && starterMessage.thread;
+      if (isValidOperation) {
+        await starterMessage.thread.delete();
+        // todo: log
+        // logger.info(`Deleted thread with starter message "${starterMessage.id}"`);
+      }
+      return isValidOperation;
+    }
+    catch(e) {
+      logger.error(e);
+      return false;
+    }
+  }
+
+  /**
+   * Extract a link from a string
+   * `"foo http://youtu.be/w?v=a&b=c bar"` -> `"http://youtu.be/w?v=a&b=c"`
+   * @param {string} string
+   * @param {bool} ignoreCodeBlocks
+   * @returns {string}
+   */
+  static getLinkFromString(string, ignoreCodeBlocks = true) {
+    if (ignoreCodeBlocks) string = string.replace(/```[\s\S]*?```/g, "");
+    else string = string.replaceAll("`", "");
+    const match = string.match(/(https?:\/\/[^\s]+)/g);
+    return match?.length ? match[0] : null;
+  }
+
+  /**
+   * Extract a link from a string with its parameters removed
+   * `"foo http://youtu.be/w?v=a&b=c bar"` -> `"http://youtu.be/w?v=a"`
+   * @param {string} string
+   * @param {bool} ignoreCodeBlocks
+   * @returns {string}
+   */
+  static getLinkWithoutParametersFromString(string, ignoreCodeBlocks = true) {
+    if (ignoreCodeBlocks) string = string.replace(/```[\s\S]*?```/g, "");
+    const match = string.match(/(https?:\/\/[^&\s]+)/g);
+    return match?.length ? match[0] : null;
+  }
+
+  /**
+   * Truncate a string to the maximum allowed size terminated on the char of that index.
+   * Example: `("the quick brown fox", 12)` => `"the quick br..."`
+   * @param {string} string
+   * @param {number} maxLength Defaults to `100` to align with Discord thread name restrictions
+   * @returns {string}
+   */
+  static getTruncatedStringTerminatedByChar(string, maxLength = 100) {
+    if (string.length <= maxLength) return string;
+    if (maxLength <= 3) return string.slice(0, maxLength);
+    if (maxLength <= 5) return string.slice(0, maxLength - 2) + "..";
+    return string.slice(0, maxLength - 3) + "...";
+  }
+
+  /**
+   * Truncate a string to the maximum allowed size terminated by a complete word.
+   * Example: `("the quick brown fox", 12)` => `"the quick [...]"`
+   * @param {string} string
+   * @param {number} maxLength Defaults to `100` to align with Discord thread name restrictions
+   * @returns {string}
+   */
+  static getTruncatedStringTerminatedByWord(string, maxLength = 100) {
+    if (string.length <= maxLength) return string;
+    const words = string.split(" ");
+    let result = words.shift();
+
+    for (const word of words) {
+      if ((`${result} ${word}`).length > maxLength - 6) {
+        result += ` [...]`;
+        break;
+      }
+      result += ` ${word}`;
+    }
+
+    return result;
+  }
+
+  /**
+   * Checks if two arrays are equal in their content
+   * TODO: sort before compare?
+   * @param {Array} array1
+   * @param {Array} array2
+   * @returns {boolean}
+   */
+  static isEqualArrays(array1, array2) {
+    return JSON.stringify(array1) === JSON.stringify(array2);
+  }
+
+  /**
+   * Checks if the filename is a non-test JavaScript or TypeScript file
+   * @param {string} filename
+   * @returns {bool}
+   */
+  static isExecutableFilename(filename) {
+    const isScriptFile = filename.endsWith(".js") || filename.endsWith(".ts");
+    const isUnitTestFile = filename.endsWith(".test.js") || filename.endsWith(".test.ts");
+    return isScriptFile && !isUnitTestFile;
+  }
+
+  /**
+   * Checks if the string is a valid number
+   * https://stackoverflow.com/questions/175739/how-can-i-check-if-a-string-is-a-valid-number
+   * @param {string} str
+   * @returns {bool}
+  */
+ static isNumericString(str) {
+    if (typeof str != "string") return false; // we only process strings!
+    return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+          !isNaN(parseFloat(str)); // ...and ensure strings of whitespace fail
+  }
+}
+
+// TODO: move to static
+
+/**
+ * Import any JavaScript files in the directory that export the events object
+ * @returns {String[]} `["./plugins/example_script.js"]`
+ */
+export async function importEventsFromDirectory(directory) {
+  const scriptFilepaths = fs
+    .readdirSync(directory)
+    .filter(isExecutableFilename)
+    .map(filename => directory + filename);
+
+  const events = new Map();
+
+  for(const filepath of scriptFilepaths) {
+    const instance = await import(filepath);
+    const isAnyMap = instance.events instanceof Map && instance.events.size;
+    if (isAnyMap) events.set(filepath, instance.events);
+  }
+
+  return events;
+}
 
 /**
  * Create a temporary download of the destination file to process with getAverageColor
@@ -80,23 +228,6 @@ export const getCronOptions = (logger, appendedJobName = "") => {
 }
 
 /**
- * Gets if two arrays are equal in their content
- * @param {Array} array1
- * @param {Array} array2
- * @returns {boolean}
- */
-export function getIsEqualArrays(array1, array2) {
-  return JSON.stringify(array1) === JSON.stringify(array2);
-}
-
-// https://stackoverflow.com/questions/175739/how-can-i-check-if-a-string-is-a-valid-number
-export function getIsNumericString(str) {
-  if (typeof str != "string") return false; // we only process strings!
-  return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
-         !isNaN(parseFloat(str)); // ...and ensure strings of whitespace fail
-}
-
-/**
  * Gets the least frequently occurring strings in the string array.
  * (Example 1: ['a', 'a', 'b', 'b', 'c', 'c', 'c'] => ['a', 'b'])
  * (Example 2: ['a', 'a', 'b', 'b'] => ['a', 'b'])
@@ -110,32 +241,6 @@ export function getLeastFrequentlyOccurringStrings(stringArray) {
   const result = [];
   for (const [item, freq] of Object.entries(frequency)) if (freq === min) result.push(item);
   return result;
-}
-
-/**
- * Extract a link from a string
- * `"foo http://youtu.be/w?v=a&b=c bar"` -> `"http://youtu.be/w?v=a&b=c"`
- * @param {string} string
- * @param {bool} ignoreCodeBlocks
- * @returns {string}
- */
-export function getLinkFromString(string, ignoreCodeBlocks = true) {
-  if (ignoreCodeBlocks) string = string.replace(/```[\s\S]*?```/g, "");
-  const match = string.match(/(https?:\/\/[^\s]+)/g);
-  return match?.length ? match[0] : null;
-}
-
-/**
- * Extract a link from a string with its parameters removed
- * `"foo http://youtu.be/w?v=a&b=c bar"` -> `"http://youtu.be/w?v=a"`
- * @param {string} string
- * @param {bool} ignoreCodeBlocks
- * @returns {string}
- */
-export function getLinkWithoutParametersFromString(string, ignoreCodeBlocks = true) {
-  if (ignoreCodeBlocks) string = string.replace(/```[\s\S]*?```/g, "");
-  const match = string.match(/(https?:\/\/[^&\s]+)/g);
-  return match?.length ? match[0] : null;
 }
 
 export function getPercentage(partialValue, totalValue) {
@@ -158,43 +263,6 @@ export function getPluginFilename(importMetaUrl) {
 export function getTimestampAsTotalSeconds(timestamp) {
   const time = timestamp.split(":");
   return (+time[0]) * 60 * 60 + (+time[1]) * 60 + (+time[2]);
-}
-
-/**
- * Truncate a string to the maximum allowed size terminated on the char of that index.
- * Example: `("the quick brown fox", 12)` => `"the quick br..."`
- * @param {string} string
- * @param {number} maxLength Defaults to `100` to align with Discord thread name restrictions
- * @returns {string}
- */
-export function getTruncatedStringTerminatedByChar(string, maxLength = 100) {
-  if (string.length <= maxLength) return string;
-  if (maxLength <= 3) return string.slice(0, maxLength);
-  if (maxLength <= 5) return string.slice(0, maxLength - 2) + "..";
-  return string.slice(0, maxLength - 3) + "...";
-}
-
-/**
- * Truncate a string to the maximum allowed size terminated by a complete word.
- * Example: `("the quick brown fox", 12)` => `"the quick [...]"`
- * @param {string} string
- * @param {number} maxLength Defaults to `100` to align with Discord thread name restrictions
- * @returns {string}
- */
-export function getTruncatedStringTerminatedByWord(string, maxLength = 100) {
-  if (string.length <= maxLength) return string;
-  const words = string.split(" ");
-  let result = words.shift();
-
-  for (const word of words) {
-    if ((`${result} ${word}`).length > maxLength - 6) {
-      result += ` [...]`;
-      break;
-    }
-    result += ` ${word}`;
-  }
-
-  return result;
 }
 
 /**
@@ -386,26 +454,4 @@ export function getSearchingPlexButton(componentCustomId) {
   button.setLabel("Searching in Plex");
   button.setStyle(ButtonStyle.Secondary);
   return button;
-}
-
-/**
- * Try deleting a child thread if one exists when a starter message is deleted
- * @param {Object} param
- * @param {string[]} param.allowedChannelIds
- * @param {Logger} param.logger
- * @param {Message} param.starterMessage
- * @returns {bool}
- */
-export async function tryDeleteMessageThread({ allowedChannelIds, logger, starterMessage }) {
-  try {
-    const isAllowedChannel = allowedChannelIds.includes(starterMessage.channel.id);
-    const isValidOperation = isAllowedChannel && starterMessage.thread;
-    if (isValidOperation) await starterMessage.thread.delete();
-    if (isValidOperation) logger.info(`Deleted thread with starter message "${starterMessage.id}"`);
-    return isValidOperation;
-  }
-  catch(e) {
-    logger.error(e);
-    return false;
-  }
 }
