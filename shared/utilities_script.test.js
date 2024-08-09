@@ -1,17 +1,52 @@
 import Utilities from "./utilities_script";
 
-describe('getFormattedRoles', () => {
-  test('returns a formatted string array of member role ids', () => {
-    const result = Utilities.getFormattedRoles(['123456789', '987654321']);
-    expect(result).toEqual(['<@&123456789>', '<@&987654321>']);
+describe("getFormattedRoles", () => {
+  test("returns a formatted string array of member role ids", () => {
+    const result = Utilities.getFormattedRoles(["123456789", "987654321"]);
+    expect(result).toEqual(["<@&123456789>", "<@&987654321>"]);
   });
-  test('returns an empty array when given an empty input array', () => {
+  test("returns an empty array when given an empty input array", () => {
     const result = Utilities.getFormattedRoles([]);
     expect(result).toEqual([]);
   });
-  test('returns a correctly formatted array when given a single role id', () => {
-    const result = Utilities.getFormattedRoles(['123456789']);
-    expect(result).toEqual(['<@&123456789>']);
+  test("returns a correctly formatted array when given a single role id", () => {
+    const result = Utilities.getFormattedRoles(["123456789"]);
+    expect(result).toEqual(["<@&123456789>"]);
+  });
+});
+
+describe("getParsedJsonString", () => {
+  test("returns an object when a valid JSON string is passed", () => {
+    const result = Utilities.getParsedJsonString("{\"key\": \"value\"}");
+    expect(result).toEqual({ key: "value" });
+  });
+  test("returns an array when a valid string with an array is passed", () => {
+    const result = Utilities.getParsedJsonString("[1, 2, 3]");
+    expect(result).toEqual([1, 2, 3]);
+  });
+  test("returns null when an invalid JSON string is passed", () => {
+    const result = Utilities.getParsedJsonString("{\"key\": \"value\"");
+    expect(result).toBeUndefined();
+  });
+  test("returns null when a non-object JSON value is passed (e.g., a number)", () => {
+    const result = Utilities.getParsedJsonString("1234");
+    expect(result).toBeUndefined();
+  });
+  test("returns null when a non-object JSON value is passed (e.g., a boolean)", () => {
+    const result = Utilities.getParsedJsonString("false");
+    expect(result).toBeUndefined();
+  });
+  test("returns null when null is passed as a JSON string", () => {
+    const result = Utilities.getParsedJsonString("null");
+    expect(result).toBeUndefined();
+  });
+  test("returns null when an empty string is passed", () => {
+    const result = Utilities.getParsedJsonString("");
+    expect(result).toBeUndefined();
+  });
+  test("returns null when a malformed JSON string is passed", () => {
+    const result = Utilities.getParsedJsonString("{\"key\": value}");
+    expect(result).toBeUndefined();
   });
 });
 
@@ -346,24 +381,24 @@ describe("isNumericString", () => {
   // });
 });
 
-describe('isPunctuatedString', () => {
-  test('returns true if the string ends with a period', () => {
-    const result = Utilities.isPunctuatedString('This is a sentence.');
+describe("isPunctuatedString", () => {
+  test("returns true if the string ends with a period", () => {
+    const result = Utilities.isPunctuatedString("This is a sentence.");
     expect(result).toBe(true);
   });
 
-  test('returns true if the string ends with a quotation mark following a period', () => {
-    const result = Utilities.isPunctuatedString('He said, "Hello."');
+  test("returns true if the string ends with a quotation mark following a period", () => {
+    const result = Utilities.isPunctuatedString("He said, 'Hello.'");
     expect(result).toBe(true);
   });
 
-  test('returns true if the string ends with a closing bracket', () => {
-    const result = Utilities.isPunctuatedString('Array [1, 2, 3]');
+  test("returns true if the string ends with a closing bracket", () => {
+    const result = Utilities.isPunctuatedString("Array [1, 2, 3]");
     expect(result).toBe(true);
   });
 
-  test('returns true if the string ends with a closing brace', () => {
-    const result = Utilities.isPunctuatedString('Object { key: "value" }');
+  test("returns true if the string ends with a closing brace", () => {
+    const result = Utilities.isPunctuatedString("Object { key: 'value' }");
     expect(result).toBe(true);
   });
 });

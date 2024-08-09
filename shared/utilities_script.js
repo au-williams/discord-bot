@@ -50,6 +50,28 @@ export default class Utilities {
   }
 
   /**
+   * Amazing how there's not a better way of determining if a string is valid JSON or not. Try/catch here we come!
+   *   Btw the "is-json" NPM package doesn't work. It's not trash because with trash you know what you're getting.
+   *   It's worse than trash because it makes you think it works until it doesn't and causes a ton of file issues.
+   *   https://stackoverflow.com/a/20392392 thanks I hate it but at least I'm not gaslit by an NPM package anymore
+   * @param {string} jsonString
+   * @returns {string?}
+   */
+  static getParsedJsonString(jsonString){
+    try {
+        const o = JSON.parse(jsonString);
+        // Handle non-exception-throwing cases:
+        // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+        // but... JSON.parse(null) returns null, and typeof null === "object",
+        // so we must check for that, too. Thankfully, null is falsey, so this suffices:
+        if (o && typeof o === "object") return o;
+    }
+    catch (e) {
+      return undefined;
+    }
+  }
+
+  /**
    * Extract a link from a string
    * `"foo http://youtu.be/w?v=a&b=c bar"` -> `"http://youtu.be/w?v=a&b=c"`
    * @param {string} string
@@ -375,27 +397,6 @@ export function getAvailableFilepath(filepath) {
 }
 
 /**
- * Amazing how there's not a better way of determining if a string is valid JSON or not. Try/catch here we come!
- *   Btw the "is-json" NPM package doesn't work. It's not trash because with trash you know what you're getting.
- *   It's worse than trash because it makes you think it works until it doesn't and causes a ton of file issues.
- *   https://stackoverflow.com/a/20392392 thanks I hate it but at least I'm not gaslit by an NPM package anymore
- * @param {string} jsonString
- * @returns {string?}
- */
-export function tryParseStringToObject(jsonString){
-  try {
-      const o = JSON.parse(jsonString);
-      // Handle non-exception-throwing cases:
-      // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
-      // but... JSON.parse(null) returns null, and typeof null === "object",
-      // so we must check for that, too. Thankfully, null is falsey, so this suffices:
-      if (o && typeof o === "object") return o;
-  }
-  // eslint-disable-next-line no-empty
-  catch (e) { }
-}
-
-/**
  * The retry policy for the `fetch-retry` NPM package
  */
 export const fetchRetryPolicy = Object.freeze({
@@ -403,7 +404,6 @@ export const fetchRetryPolicy = Object.freeze({
   retryDelay: 1000,
   retryOn: [501, 502, 503]
 })
-
 
 /**
  * Get the existing thread or create one if it doesn't exist
