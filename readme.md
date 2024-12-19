@@ -89,7 +89,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   });
   ```
 
-  _Listeners are used to handle actions. The property key is a Discord event or an interaction from the `Interactions<object>` variable. The property value is a `Listener` object that will be executed when the property key is emitted by Discord. Listeners that only set a function can use the function as the value and it will be wrapped in a Listener by the framework automatically. You can use an array to define multiple Listener values for a single property key. You can customize the Listener with the following setters ..._
+  _Listeners handle actions. The key is a Discord event or interaction from the `Interactions<object>` object. The value is a `Listener` object that will be executed when the key is emitted by Discord. Listeners that only set a function can use the function as the value and it will be wrapped in a Listener by the framework automatically. You can use an array to define multiple Listener values for a single key. You can customize the Listener with the following setters ..._
 
   | Setters                | Required | Purpose                                                             |
   | ---------------------- | -------- | ------------------------------------------------------------------- |
