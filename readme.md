@@ -109,7 +109,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   ---
 </details>
 
-These are the JavaScript files in the `plugins` folder. JSON files of the same name are their config files. These plugins may have their own config files to update before they can run ...
+These are the JavaScript files in the `plugins` folder. JSON files of the same name are their config files. These plugins may have their own config files that must be updated before they can start ...
 
 <details>
   <summary>🧩 plugins/cat_facts_scheduler.js</summary>
