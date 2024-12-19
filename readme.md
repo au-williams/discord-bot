@@ -42,11 +42,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
 
 <details>
   <summary>export const CronJobs</summary>
-
-  ---
-
-  [Cron](https://en.wikipedia.org/wiki/Cron#CRON_expression) schedules functions to run on a pattern, such as *every 5 minutes* or *every Saturday morning at 9 AM*. The framework will automatically schedule jobs that are defined here.
-
+  
   ```js
   export const CronJobs = new Set([
     new CronJobScheduler()
@@ -55,7 +51,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   ]);
   ```
 
-  There are multiple CronJob setters available.
+  _[Cron](https://en.wikipedia.org/wiki/Cron#CRON_expression) is a job scheduler that runs functions on a [pattern](https://devhints.io/cron), like every 5 minutes or every Saturday morning at 9 AM. The bot framework automatically schedules the Cron jobs you define here. You can customize the Cron job with the following setters ..._
 
   | Setters      | Required | Purpose                                                              |
   | ------------ | -------- | -------------------------------------------------------------------- |
@@ -64,8 +60,6 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   | setPattern   | `true`   | Sets the Cron expression used when scheduling the Cron job.          |
   | setRunOrder  | `false`  | Sets the order this Cron job runs with others to avoid race issues.  |
   | setTriggered | `false`  | Sets if the Cron job should run on startup and before its pattern. |
-
-  ---
 </details>
 
 <details>
