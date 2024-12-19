@@ -77,7 +77,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   });
   ```
 
-  _Every action in Discord can be thought of as an interaction. Clicking buttons, submitting forms, sending messages, etc. When we make buttons to click or forms to submit we must assign them a unique ID that Discord will emit back to us when it has been interacted with. These unique IDs are set on components and used as keys in `Listeners<object>`._
+  _Every action in Discord can be thought of as an interaction. Clicking buttons, submitting forms, sending messages, etc. When we create buttons to click or forms to submit we must assign them a unique ID that Discord will emit back to us when it has been interacted with. These unique IDs are set on components and used as keys in `Listeners<object>`._
 
   ---
 </details>
