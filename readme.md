@@ -30,7 +30,7 @@ Or ran with [Docker](https://www.docker.com/) using the [Docker image](https://g
 ghcr.io/au-williams/discord-bot:master
 ```
 
-⭐ **Docker is recommended** so the bot can start with your OS and recover from network issues. ⭐
+⭐ **Docker is recommended so the bot can start automatically and recover from network issues.** ⭐
 
 ## Anatomy of the bot
 
