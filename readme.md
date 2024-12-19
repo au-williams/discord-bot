@@ -22,9 +22,7 @@ Required fields in the `./config.json` file must be set before the bot can start
 
 ## Anatomy of the bot
 
-The bot is a framework meant to automate most code-heavy tasks working with the Discord API. You simply need to add a new JavaScript file to the `plugins` folder to extend its functionality.
-
-In your plugin script, you should export one or many of the following objects:
+The bot is a framework meant to automate most code-heavy tasks working with the Discord API. You simply need to add a new JavaScript file to the `plugins` folder to add functionality. You should export one or many of these objects in that file as needed:
 
 <details>
   <summary>CronJobs</summary>
@@ -91,7 +89,7 @@ In your plugin script, you should export one or many of the following objects:
   | setRunOrder            | `false`  | Sets the order this listener runs with others to avoid race issues. |
 </details>
 
-
+JavaScript files in the `services` folder operate in the same way but are treated as dependencies for the framework. Thus when handling errors, plugins will catch and release while services throw to avoid an invalid system state.
 
 <!-- ## Creating plugins
 
