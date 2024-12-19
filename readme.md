@@ -1,6 +1,6 @@
 # docker-discord-bot
 
-My Discord bot made with [discord.js](https://discord.js.org/) for scalable automation of local and remote tasks. Docker image is built with CI using [GitHub Actions](https://github.com/au-williams/docker-discord-bot/actions). 🐋📦
+My Discord bot made with [discord.js](https://discord.js.org/) for scalable automation of local and remote tasks. [Docker image](https://github.com/au-williams/docker-discord-bot/pkgs/container/discord-bot) is built with CI using [GitHub Actions](https://github.com/au-williams/docker-discord-bot/actions). 🐋📦
 
 ## Starting the bot
 
