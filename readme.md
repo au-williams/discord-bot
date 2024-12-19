@@ -8,7 +8,7 @@ My Discord bot made with [discord.js](https://discord.js.org/) for scalable auto
 
 ## Starting the bot
 
-🛑 **Required fields in the [config.json](config.json) file must be set before the bot can start!** 🛑
+🛑 **Required fields in the [config.json](config.json) file must be updated before the bot can start!** 🛑
 
 <details>
   <summary>🛠️ config.json</summary>
@@ -109,7 +109,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   ---
 </details>
 
-These are the JavaScript files currently in the `plugins` folder. They may have their own config files to set before the plugin can run ...
+These are the JavaScript files currently in the `plugins` folder. Files of the same name in JSON format are config files. These plugins may have their own config files to update before they can run ...
 
 <details>
   <summary>🧩 plugins/cat_facts_scheduler.js</summary>
