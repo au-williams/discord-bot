@@ -1,27 +1,101 @@
-# discord-bot
+# docker-discord-bot
 
-My Discord bot made with [discord.js](https://discord.js.org/) for scalable automation of local and remote tasks.
+My Discord bot made with [discord.js](https://discord.js.org/) for scalable automation of local and remote tasks. Docker image is built with CI using [GitHub Actions](https://github.com/au-williams/docker-discord-bot/actions). 🐋📦
 
 ## Starting the bot
 
-**I recommend using the [PM2](https://pm2.keymetrics.io/) process manager so the bot may recover from network issues:**
+Required fields in the `./config.json` file must be set before the bot can start. 🛑
 
-```bash
-$ pm2 start --no-daemon index.js --exp-backoff-restart-delay=100
-```
+- This project can be ran from CLI with [Node.js](https://nodejs.org/en) ...
 
-- _`--no-daemon` prints logs to the console window instead of a log file_
-- _`--exp-backoff-restart-delay` slows the restart policy during repeat failures_
+  ```bash
+  $ node index.js
+  ```
 
-... Or if you would rather use [Node.js](https://nodejs.org/en):
+- Or ran with [Docker](https://www.docker.com/) using the GitHub image ...
 
-```bash
-$ node index.js
-```
+  ```url
+  ghcr.io/au-williams/discord-bot:master
+  ```
 
-## Creating plugins
+**Docker is recommended** so the bot can start with your OS and recover from network issues.
 
-The `index.js` file handles [discord.js events](https://old.discordjs.dev/#/docs/discord.js/14.9.0/typedef/Events) and invokes the corresponding function names in `./plugins/` JavaScript files. Simply creating a new JavaScript file with an appropriately named function is enough for it to execute - but you ***should*** add the config and readme files for optimal code quality.
+## Anatomy of the bot
+
+The bot is a framework meant to automate most code-heavy tasks working with the Discord API. You simply need to add a new JavaScript file to the `plugins` folder to extend its functionality.
+
+In your plugin script, you should export one or many of the following objects:
+
+<details>
+  <summary>CronJobs</summary>
+
+  [Cron](https://en.wikipedia.org/wiki/Cron#CRON_expression) schedules functions to run on a pattern, such as *every 5 minutes* or *every Saturday morning at 9 AM*. The framework will automatically schedule jobs that are defined here.
+
+  ```js
+  export const CronJobs = new Set([
+    new CronJobScheduler()
+      .setFunction(myFunction)
+      .setPattern("* * * * *")
+  ]);
+  ```
+
+  There are multiple CronJob setters available.
+
+  | Setters      | Required | Purpose                                                              |
+  | ------------ | -------- | -------------------------------------------------------------------- |
+  | setEnabled   | `false`  | Sets the enabled state of the Cron job (typically for debugging).    |
+  | setFunction  | `true`   | Sets the function to execute when the Cron job is running.           |
+  | setPattern   | `true`   | Sets the Cron expression used when scheduling the Cron job.          |
+  | setRunOrder  | `false`  | Sets the order this Cron job runs with others to avoid race issues.  |
+  | setTriggered | `false`  | Sets if the Cron job should run on startup and before its pattern. |
+</details>
+
+<details>
+  <summary>Interactions</summary>
+
+  Every action in Discord can be thought of as an interaction. Clicking buttons, submitting forms, sending messages, etc. When we create buttons to click or forms to submit we must give them a unique ID that Discord will provide back to us when it has been interacted with (handled in `Listeners<object>`).
+
+  ```js
+  export const Interactions = Object.freeze({
+    ButtonComponentWave: "PLUGIN_BUTTON_COMPONENT_WAVE"
+  });
+  ```
+</details>
+
+<details>
+  <summary>Listeners</summary>
+
+  Listeners are used to handle actions. The key is a Discord event or an interaction from the `Interactions<object>` variable. The value is a `Listener` object that will be executed when the key is emitted by Discord.
+
+  ```js
+  export const Listeners = Object.freeze({
+    [Interactions.ButtonComponentWave]: new Listener()
+      .setDescription("Sends the wave emoji when the button is clicked.")
+      .setFunction(onButtonComponentWave)
+  });
+  ```
+
+  Listeners that only set a function can use the function as the value and it will be wrapped in a Listener by the framework automatically. You can use an array to define multiple Listeners for a single key. There are many setters you can use which were made to reduce the amount of code needed to write complex functionality:
+
+  | Setters                | Required | Purpose                                                             |
+  | ---------------------- | -------- | ------------------------------------------------------------------- |
+  | setBusyFunction        | `false`  | Sets the function to execute when the listener is flagged as busy.  |
+  | setDeploymentType      | `false`  | Sets the type of POST request to use when deploying to Discord.     |
+  | setDescription         | `false`  | Sets the text displayed when describing functionality to the user.  |
+  | setEnabled             | `false`  | Sets the enabled state of the listener (typically for debugging).   |
+  | setFunction            | `true`   | Sets the function to execute when the listener is authorized.       |
+  | setLockedUserFunction  | `false`  | Sets the function to execute when the listener is not authorized.   |
+  | setRequiredChannels    | `false`  | Sets the channel ID(s) required for the listener to be executed.    |
+  | setRequiredChannelType | `false`  | Sets the channel type required for the listener to be executed.     |
+  | setRequiredRoles       | `false`  | Sets the role ID(s) a user must possess one of to be authorized.    |
+  | setRunOrder            | `false`  | Sets the order this listener runs with others to avoid race issues. |
+</details>
+
+
+
+<!-- ## Creating plugins
+
+The `index.js` file handles [discord.js events](https://old.discordjs.dev/#/docs/discord.js/14.9.0/typedef/Events) and invokes the corresponding function names in `./plugins/` JavaScript files. Simply creating a new JavaScript file with an appropriately named function is enough for it to execute - but you **_should_** add the config and readme files for optimal code quality.
 
 ```
 ./plugins/
@@ -49,11 +123,13 @@ You can register slash commands for a plugin by exporting the `PLUGIN_COMMANDS` 
 
 ```js
 // define "/hello-world" slash command
-export const PLUGIN_COMMANDS = [{
-  name: "hello-world",
-  description: `Prints "Hello World" to the console`,
-  onInteractionCreate: () => console.log("Hello World!")
-}]
+export const PLUGIN_COMMANDS = [
+  {
+    name: "hello-world",
+    description: `Prints "Hello World" to the console`,
+    onInteractionCreate: () => console.log("Hello World!")
+  }
+];
 ```
 
 **You must start the bot with the `deploy` arg for any slash command changes to take effect:**
@@ -68,14 +144,14 @@ This sends a PUT request to Discord containing the updated slash commands during
 
 | Key                              | Value                                                                                                                     | Required |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `"discord_bot_client_id"`        | The Discord bot client ID [(how to find this)](https://support.heateor.com/discord-client-id-discord-client-secret/)      | ✔        |
+| `"discord_bot_client_user_id"`   | The Discord bot client ID [(how to find this)](https://support.heateor.com/discord-client-id-discord-client-secret/)      | ✔        |
 | `"discord_bot_login_token"`      | The Discord bot login token [(how to find this)](https://docs.discordbotstudio.org/setting-up-dbs/finding-your-bot-token) | ✔        |
 | `"discord_prefetch_channel_ids"` | The Discord channel IDs to prefetch messages for                                                                          | ✖        |
-| `"discord_config_channel_id"`     | The Discord channel ID where state will be stored                                                                         | ✔        |
-| `"temp_directory"`               | The directory where temporary files will be stored                                                                        | ✔        |
+| `"discord_config_channel_id"`    | The Discord channel ID where state will be stored                                                                         | ✔        |
+| `"temp_directory"`               | The directory where temporary files will be stored                                                                        | ✔        | -->
 
 <!--
-todo:
+TODO:
 # managing state
 # managing logs
 # add config value ... discord_logs_channel_id
