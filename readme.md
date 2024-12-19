@@ -2,7 +2,7 @@
 
 My Discord bot made with [discord.js](https://discord.js.org/) for scalable automation of local and remote tasks. [Docker image](https://github.com/au-williams/docker-discord-bot/pkgs/container/discord-bot) is built with CI using [GitHub Actions](https://github.com/au-williams/docker-discord-bot/actions). 🐋📦
 
-<img style="height: 75px" src="assets/readme_logos.png"/>
+<img style="height: 100px" src="assets/readme_logos.png"/>
 
 ## Starting the bot
 
