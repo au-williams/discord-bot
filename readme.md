@@ -41,7 +41,7 @@ ghcr.io/au-williams/discord-bot:master
 The bot is a framework meant to automate many code-heavy tasks working with the Discord API. You simply need to add a new JavaScript file to the `plugins` folder to add functionality. You must export one or more of these objects in that script ...
 
 <details>
-  <summary>export const CronJobs</summary>
+  <summary>📤 export const CronJobs</summary>
   
   ```js
   export const CronJobs = new Set([
@@ -63,7 +63,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
 </details>
 
 <details>
-  <summary>export const Interactions</summary>
+  <summary>📤 export const Interactions</summary>
 
   ```js
   export const Interactions = Object.freeze({
@@ -75,7 +75,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
 </details>
 
 <details>
-  <summary>export const Listeners</summary>
+  <summary>📤 export const Listeners</summary>
 
   ---
 
@@ -110,49 +110,49 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
 These are the JavaScript files currently in the `plugins` folder ...
 
 <details>
-  <summary>plugins/cat_facts_scheduler.js</summary>
+  <summary>🧩 plugins/cat_facts_scheduler.js</summary>
 </details>
 
 <details>
-  <summary>plugins/caturday_scheduler.js</summary>
+  <summary>🧩 plugins/caturday_scheduler.js</summary>
 </details>
 
 <details>
-  <summary>plugins/deep_rock_galactic_announcer.js</summary>
+  <summary>🧩 plugins/deep_rock_galactic_announcer.js</summary>
 </details>
 
 <details>
-  <summary>plugins/discord_direct_message_manager.js</summary>
+  <summary>🧩 plugins/discord_direct_message_manager.js</summary>
 </details>
 
 <details>
-  <summary>plugins/discord_guild_role_color_manager.js</summary>
+  <summary>🧩 plugins/discord_guild_role_color_manager.js</summary>
 </details>
 
 <details>
-  <summary>plugins/plex_music_downloader.js</summary>
+  <summary>🧩 plugins/plex_music_downloader.js</summary>
 </details>
 
 <details>
-  <summary>plugins/steam_community_announcer.js</summary>
+  <summary>🧩 plugins/steam_community_announcer.js</summary>
 </details>
 
 JavaScript files in the `services` folder operate the same as plugins but are dependencies for the bot framework. Thus when handling errors, plugins will catch and release while services throw to avoid an invalid system state. You can use these services in your plugin by referencing them.
 
 <details>
-  <summary>services/config.js</summary>
+  <summary>⚙️ services/config.js</summary>
 </details>
 
 <details>
-  <summary>services/emitter.js</summary>
+  <summary>⚙️ services/emitter.js</summary>
 </details>
 
 <details>
-  <summary>services/logger.js</summary>
+  <summary>⚙️ services/logger.js</summary>
 </details>
 
 <details>
-  <summary>services/messages.js</summary>
+  <summary>⚙️ services/messages.js</summary>
 </details>
 
 ## Deploying the bot
