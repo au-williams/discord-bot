@@ -18,13 +18,13 @@ Required fields in the [config.json](config.json) file must be set before the bo
   | `"temp_directory"`               | The directory where temporary files will be stored                                                                        | ✔        |
 </details>
 
-This project can be ran from CLI with [Node.js](https://nodejs.org/en) ...
+This project can then be ran from CLI with [Node.js](https://nodejs.org/en) ...
 
 ```bash
 $ node index.js
 ```
 
-Or ran with [Docker](https://www.docker.com/) using the GitHub image ...
+Or ran with [Docker](https://www.docker.com/) using the GitHub Actions image ...
 
 ```url
 ghcr.io/au-williams/discord-bot:master
