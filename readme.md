@@ -21,13 +21,13 @@ My Discord bot made with [discord.js](https://discord.js.org/) for the scalable 
 
 </details>
 
-This project can run from CLI with [Node.js](https://nodejs.org/en) ...
+This project can start from CLI with [Node.js](https://nodejs.org/en) ...
 
 ```bash
 $ node index.js
 ```
 
-Or run with [Docker](https://www.docker.com/) using the [Docker image](https://github.com/au-williams/docker-discord-bot/pkgs/container/discord-bot) ...
+Or start with [Docker](https://www.docker.com/) using the [Docker image](https://github.com/au-williams/docker-discord-bot/pkgs/container/discord-bot) ...
 
 ```
 ghcr.io/au-williams/discord-bot:master
