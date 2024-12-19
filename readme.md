@@ -146,22 +146,23 @@ These are the JavaScript files currently in the `plugins` folder ...
 JavaScript files in the `services` folder operate the same as plugins but are dependencies for the bot framework. Thus when handling errors, plugins will catch and release while services throw to avoid an invalid system state. You can use these services in your plugin by referencing them.
 
 <details>
-  <summary>Config service</summary>
+  <summary>config.js service</summary>
 </details>
 
 <details>
-  <summary>Emitter service</summary>
+  <summary>emitter.js service</summary>
 </details>
 
 <details>
-  <summary>Logger service</summary>
+  <summary>logger.js service</summary>
 </details>
 
 <details>
-  <summary>Messages service</summary>
+  <summary>messages.js service</summary>
 </details>
 
 ## Deploying the bot
+
 <!-- ## Creating plugins
 
 The `index.js` file handles [discord.js events](https://old.discordjs.dev/#/docs/discord.js/14.9.0/typedef/Events) and invokes the corresponding function names in `./plugins/` JavaScript files. Simply creating a new JavaScript file with an appropriately named function is enough for it to execute - but you **_should_** add the config and readme files for optimal code quality.
