@@ -89,7 +89,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   });
   ```
 
-  _Listeners handle actions. The key is a Discord event or interaction from the `Interactions<object>` object. The value is a `Listener` object that will be executed when the key is emitted by Discord. Listeners that only set a function can use the function as the value and it will be wrapped in a Listener by the framework automatically. You can use an array to define multiple Listener values for a single key. You can customize the Listener with the following setters ..._
+  _Listeners handle actions. The key is a Discord event or interaction from the `Interactions` object. The value is a `Listener` object that will be executed when the key is emitted by Discord. Listeners that only set a function can use the function as the value and it will be wrapped in a Listener by the framework automatically. You can use an array to define multiple Listener values for a single key. You can customize the Listener with the following setters ..._
 
   | Setters                | Required | Purpose                                                             |
   | ---------------------- | -------- | ------------------------------------------------------------------- |
@@ -103,8 +103,6 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   | setRequiredChannelType | `false`  | Sets the channel type required for the listener to be executed.     |
   | setRequiredRoles       | `false`  | Sets the role ID(s) a user must possess one of to be authorized.    |
   | setRunOrder            | `false`  | Sets the order this listener runs with others to avoid race issues. |
-
-  ---
 </details>
 
 These are the JavaScript files in the `plugins` folder. JSON files of the same name are their config files. These plugins may have their own config files that must be updated before they can start ...
