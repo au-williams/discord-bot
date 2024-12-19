@@ -4,7 +4,7 @@ My Discord bot made with [discord.js](https://discord.js.org/) for scalable auto
 
 ## Starting the bot
 
-Required fields in the [config.json](config.json) file must be set before the bot can start. 🛑
+🛑 **Required fields in the [config.json](config.json) file must be set before the bot can start!** 🛑
 
 <details>
   <summary>config.json</summary>
@@ -18,26 +18,26 @@ Required fields in the [config.json](config.json) file must be set before the bo
   | `"temp_directory"`               | The directory where temporary files will be stored                                                                        | ✔        |
 </details>
 
-This project can then be ran from CLI with [Node.js](https://nodejs.org/en) ...
+This project can be ran from CLI with [Node.js](https://nodejs.org/en) ...
 
 ```bash
 $ node index.js
 ```
 
-Or ran with [Docker](https://www.docker.com/) using the [GitHub Actions image](https://github.com/au-williams/docker-discord-bot/pkgs/container/discord-bot) ...
+Or ran with [Docker](https://www.docker.com/) using the [Docker image](https://github.com/au-williams/docker-discord-bot/pkgs/container/discord-bot) ...
 
 ```url
 ghcr.io/au-williams/discord-bot:master
 ```
 
-**Docker is recommended** so the bot can start with your OS and recover from network issues.
+⭐ **Docker is recommended** so the bot can start with your OS and recover from network issues. ⭐
 
 ## Anatomy of the bot
 
 The bot is a framework meant to automate most code-heavy tasks working with the Discord API. You simply need to add a new JavaScript file to the `plugins` folder to add functionality. You should export one or many of these objects in that file as needed:
 
 <details>
-  <summary>CronJobs</summary>
+  <summary>export const CronJobs</summary>
 
   [Cron](https://en.wikipedia.org/wiki/Cron#CRON_expression) schedules functions to run on a pattern, such as *every 5 minutes* or *every Saturday morning at 9 AM*. The framework will automatically schedule jobs that are defined here.
 
@@ -61,7 +61,7 @@ The bot is a framework meant to automate most code-heavy tasks working with the 
 </details>
 
 <details>
-  <summary>Interactions</summary>
+  <summary>export const Interactions</summary>
 
   Every action in Discord can be thought of as an interaction. Clicking buttons, submitting forms, sending messages, etc. When we create buttons to click or forms to submit we must give them a unique ID that Discord will provide back to us when it has been interacted with (handled in `Listeners<object>`).
 
@@ -73,7 +73,7 @@ The bot is a framework meant to automate most code-heavy tasks working with the 
 </details>
 
 <details>
-  <summary>Listeners</summary>
+  <summary>export const Listeners</summary>
 
   Listeners are used to handle actions. The key is a Discord event or an interaction from the `Interactions<object>` variable. The value is a `Listener` object that will be executed when the key is emitted by Discord.
 
@@ -101,8 +101,25 @@ The bot is a framework meant to automate most code-heavy tasks working with the 
   | setRunOrder            | `false`  | Sets the order this listener runs with others to avoid race issues. |
 </details>
 
-JavaScript files in the `services` folder operate in the same way but are treated as dependencies for the framework. Thus when handling errors, plugins will catch and release while services throw to avoid an invalid system state.
+JavaScript files in the `services` folder operate in the same way but are treated as dependencies for the framework. Thus when handling errors, plugins will catch and release while services throw to avoid an invalid system state. You can use these services in your plugin as needed.
 
+<details>
+  <summary>Config service</summary>
+</details>
+
+<details>
+  <summary>Emitter service</summary>
+</details>
+
+<details>
+  <summary>Logger service</summary>
+</details>
+
+<details>
+  <summary>Messages service</summary>
+</details>
+
+## Deploying the bot
 <!-- ## Creating plugins
 
 The `index.js` file handles [discord.js events](https://old.discordjs.dev/#/docs/discord.js/14.9.0/typedef/Events) and invokes the corresponding function names in `./plugins/` JavaScript files. Simply creating a new JavaScript file with an appropriately named function is enough for it to execute - but you **_should_** add the config and readme files for optimal code quality.
