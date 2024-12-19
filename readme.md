@@ -4,11 +4,11 @@ My Discord bot made with [discord.js](https://discord.js.org/) for scalable auto
 
 ## Starting the bot
 
-Required fields in the `./config.json` file must be set before the bot can start. 🛑
+Required fields in the [config.json](config.json) file must be set before the bot can start. 🛑
 
 <details>
   <summary>config.json</summary>
-
+  
   | Key                              | Value                                                                                                                     | Required |
   | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- |
   | `"discord_bot_client_user_id"`   | The Discord bot client ID [(how to find this)](https://support.heateor.com/discord-client-id-discord-client-secret/)      | ✔        |
@@ -16,20 +16,19 @@ Required fields in the `./config.json` file must be set before the bot can start
   | `"discord_prefetch_channel_ids"` | The Discord channel IDs to prefetch messages for                                                                          | ✖        |
   | `"discord_config_channel_id"`    | The Discord channel ID where state will be stored                                                                         | ✔        |
   | `"temp_directory"`               | The directory where temporary files will be stored                                                                        | ✔        |
-
 </details>
 
-- This project can be ran from CLI with [Node.js](https://nodejs.org/en) ...
+This project can be ran from CLI with [Node.js](https://nodejs.org/en) ...
 
-  ```bash
-  $ node index.js
-  ```
+```bash
+$ node index.js
+```
 
-- Or ran with [Docker](https://www.docker.com/) using the GitHub image ...
+Or ran with [Docker](https://www.docker.com/) using the GitHub image ...
 
-  ```url
-  ghcr.io/au-williams/discord-bot:master
-  ```
+```url
+ghcr.io/au-williams/discord-bot:master
+```
 
 **Docker is recommended** so the bot can start with your OS and recover from network issues.
 
