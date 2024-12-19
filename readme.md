@@ -103,7 +103,7 @@ export const Listeners = Object.freeze({
 });
 ```
 
-_Listeners handle actions. The property key is a Discord event or interaction from the `Interactions` object. The value is a `Listener` object that will be executed when the key is emitted by Discord. Listeners that only set a function can use that function as the value and it will be wrapped in a Listener by the framework automatically. You can use an array to create multiple Listener values for a single key. You can customize the Listener with the following setters ..._
+_Listeners handle actions. The property key is a Discord event or interaction from the `Interactions` object. The value is a `Listener` object that will be executed when the key is emitted by Discord. Listeners that only set a function can use that function as the value and the framework will automatically wrap it in a Listener. You can use an array to create multiple Listener values for a single key. You can customize the Listener with the following setters ..._
 
 | Setters                | Required | Purpose                                                             |
 | ---------------------- | -------- | ------------------------------------------------------------------- |
