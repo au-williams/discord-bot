@@ -116,49 +116,49 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
 These are the JavaScript files currently in the `plugins` folder ...
 
 <details>
-  <summary>cat_facts_scheduler.js plugin</summary>
+  <summary>plugins/cat_facts_scheduler.js</summary>
 </details>
 
 <details>
-  <summary>caturday_scheduler.js plugin</summary>
+  <summary>plugins/caturday_scheduler.js</summary>
 </details>
 
 <details>
-  <summary>deep_rock_galactic_announcer.js plugin</summary>
+  <summary>plugins/deep_rock_galactic_announcer.js</summary>
 </details>
 
 <details>
-  <summary>discord_direct_message_manager.js plugin</summary>
+  <summary>plugins/discord_direct_message_manager.js</summary>
 </details>
 
 <details>
-  <summary>discord_guild_role_color_manager.js plugin</summary>
+  <summary>plugins/discord_guild_role_color_manager.js</summary>
 </details>
 
 <details>
-  <summary>plex_music_downloader.js plugin</summary>
+  <summary>plugins/plex_music_downloader.js</summary>
 </details>
 
 <details>
-  <summary>steam_community_announcer.js plugin</summary>
+  <summary>plugins/steam_community_announcer.js</summary>
 </details>
 
 JavaScript files in the `services` folder operate the same as plugins but are dependencies for the bot framework. Thus when handling errors, plugins will catch and release while services throw to avoid an invalid system state. You can use these services in your plugin by referencing them.
 
 <details>
-  <summary>config.js service</summary>
+  <summary>services/config.js</summary>
 </details>
 
 <details>
-  <summary>emitter.js service</summary>
+  <summary>services/emitter.js</summary>
 </details>
 
 <details>
-  <summary>logger.js service</summary>
+  <summary>services/logger.js</summary>
 </details>
 
 <details>
-  <summary>messages.js service</summary>
+  <summary>services/messages.js</summary>
 </details>
 
 ## Deploying the bot
