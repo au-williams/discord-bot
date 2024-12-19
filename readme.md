@@ -30,7 +30,7 @@ $ node index.js
 
 Or run with [Docker](https://www.docker.com/) using the [Docker image](https://github.com/au-williams/docker-discord-bot/pkgs/container/discord-bot) ...
 
-```url
+```
 ghcr.io/au-williams/discord-bot:master
 ```
 
@@ -79,11 +79,9 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
 <details>
   <summary>📤 export const Listeners</summary>
 
-  ---
-
-  Listeners are used to handle actions. The key is a Discord event or an interaction from the `Interactions<object>` variable. The value is a `Listener` object that will be executed when the key is emitted by Discord.
-
   ```js
+  import Listener from "../entities/Listener.js";
+
   export const Listeners = Object.freeze({
     [Interactions.ButtonComponentWave]: new Listener()
       .setDescription("Sends the wave emoji when the button is clicked.")
@@ -91,7 +89,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   });
   ```
 
-  Listeners that only set a function can use the function as the value and it will be wrapped in a Listener by the framework automatically. You can use an array to define multiple Listeners for a single key. There are many setters you can use which were made to reduce the amount of code needed to write complex functionality:
+  _Listeners are used to handle actions. The property key is a Discord event or an interaction from the `Interactions<object>` variable. The property value is a `Listener` object that will be executed when the property key is emitted by Discord. Listeners that only set a function can use the function as the value and it will be wrapped in a Listener by the framework automatically. You can use an array to define multiple Listener values for a single property key. You can customize the Listener with the following setters ..._
 
   | Setters                | Required | Purpose                                                             |
   | ---------------------- | -------- | ------------------------------------------------------------------- |
