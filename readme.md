@@ -18,19 +18,19 @@ My Discord bot made with [discord.js](https://discord.js.org/) for scalable auto
   | `"temp_directory"`               | The directory where temporary files will be stored                                                                        | ✔        |
 </details>
 
-This project can be ran from CLI with [Node.js](https://nodejs.org/en) ...
+This project can run from CLI with [Node.js](https://nodejs.org/en) ...
 
 ```bash
 $ node index.js
 ```
 
-Or ran with [Docker](https://www.docker.com/) using the [Docker image](https://github.com/au-williams/docker-discord-bot/pkgs/container/discord-bot) ...
+Or run with [Docker](https://www.docker.com/) using the [Docker image](https://github.com/au-williams/docker-discord-bot/pkgs/container/discord-bot) ...
 
 ```url
 ghcr.io/au-williams/discord-bot:master
 ```
 
-⭐ **Docker is recommended so the bot can start automatically and recover from network issues.** ⭐
+⭐ **Docker is recommended so the bot can automatically start and recover from network issues.** ⭐
 
 ## Anatomy of the bot
 
