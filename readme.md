@@ -78,8 +78,6 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   ```
 
   _Every action in Discord can be thought of as an interaction. Clicking buttons, submitting forms, sending messages, etc. When we create buttons to click or forms to submit we must assign them a unique ID that Discord will emit back to us when it has been interacted with. These unique IDs are set on components and used as keys in `Listeners<object>`._
-
-  ---
 </details>
 
 <details>
@@ -115,7 +113,37 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   ---
 </details>
 
-JavaScript files in the `services` folder operate the same as plugins but are as dependencies for the framework. Thus when handling errors, plugins will catch and release while services throw to avoid an invalid system state. You can use these services in your plugin by referencing them.
+These are the JavaScript files currently in the `plugins` folder ...
+
+<details>
+  <summary>cat_facts_scheduler.js plugin</summary>
+</details>
+
+<details>
+  <summary>caturday_scheduler.js plugin</summary>
+</details>
+
+<details>
+  <summary>deep_rock_galactic_announcer.js plugin</summary>
+</details>
+
+<details>
+  <summary>discord_direct_message_manager.js plugin</summary>
+</details>
+
+<details>
+  <summary>discord_guild_role_color_manager.js plugin</summary>
+</details>
+
+<details>
+  <summary>plex_music_downloader.js plugin</summary>
+</details>
+
+<details>
+  <summary>steam_community_announcer.js plugin</summary>
+</details>
+
+JavaScript files in the `services` folder operate the same as plugins but are dependencies for the framework. Thus when handling errors, plugins will catch and release while services throw to avoid an invalid system state. You can use these services in your plugin by referencing them.
 
 <details>
   <summary>Config service</summary>
