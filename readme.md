@@ -44,6 +44,8 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   <summary>📤 export const CronJobs</summary>
   
   ```js
+  import CronJobScheduler from "../entities/CronJobScheduler.js";
+
   export const CronJobs = new Set([
     new CronJobScheduler()
       .setFunction(myFunction)
@@ -59,7 +61,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   | setFunction  | `true`   | Sets the function to execute when the Cron job is running.           |
   | setPattern   | `true`   | Sets the Cron expression used when scheduling the Cron job.          |
   | setRunOrder  | `false`  | Sets the order this Cron job runs with others to avoid race issues.  |
-  | setTriggered | `false`  | Sets if the Cron job should run on startup and before its pattern. |
+  | setTriggered | `false`  | Sets if the Cron job should run on startup and before the pattern. |
 </details>
 
 <details>
