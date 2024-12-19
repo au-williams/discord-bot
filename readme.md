@@ -38,7 +38,7 @@ ghcr.io/au-williams/discord-bot:master
 
 ## Anatomy of the bot
 
-The bot is a framework meant to automate many code-heavy tasks working with the Discord API. You simply need to add a new JavaScript file to the `plugins` folder to add functionality. You should export one or more of these objects in that script as needed ...
+The bot is a framework meant to automate many code-heavy tasks working with the Discord API. You simply need to add a new JavaScript file to the `plugins` folder to add functionality. You must export one or more of these objects in that script ...
 
 <details>
   <summary>export const CronJobs</summary>
@@ -51,7 +51,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   ]);
   ```
 
-  _[Cron](https://en.wikipedia.org/wiki/Cron#CRON_expression) is a job scheduler that runs functions on an [expression](https://devhints.io/cron), like every 5 minutes or every Saturday at 9 AM. The bot framework automatically schedules the Cron jobs you create here. You can customize the Cron job with the following setters ..._
+  _[Cron](https://en.wikipedia.org/wiki/Cron#CRON_expression) is a job scheduler that runs functions on an [expression](https://devhints.io/cron), like every 5 minutes or every Saturday at 9 AM. The bot framework automatically schedules the Cron jobs you create here. You can customize your Cron job with the following setters ..._
 
   | Setters      | Required | Purpose                                                              |
   | ------------ | -------- | -------------------------------------------------------------------- |
