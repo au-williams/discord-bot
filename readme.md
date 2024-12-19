@@ -38,7 +38,7 @@ ghcr.io/au-williams/discord-bot:master
 
 ## Anatomy of the bot
 
-The bot is a framework meant to automate most code-heavy tasks working with the Discord API. You simply need to add a new JavaScript file to the `plugins` folder to add functionality. You should export one or many of these objects in that script as needed:
+The bot is a framework meant to automate many code-heavy tasks working with the Discord API. You simply need to add a new JavaScript file to the `plugins` folder to add functionality. You should export one or more of these objects in that script as needed:
 
 <details>
   <summary>export const CronJobs</summary>
