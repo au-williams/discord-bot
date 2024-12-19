@@ -143,7 +143,7 @@ These are the JavaScript files currently in the `plugins` folder ...
   <summary>steam_community_announcer.js plugin</summary>
 </details>
 
-JavaScript files in the `services` folder operate the same as plugins but are dependencies for the framework. Thus when handling errors, plugins will catch and release while services throw to avoid an invalid system state. You can use these services in your plugin by referencing them.
+JavaScript files in the `services` folder operate the same as plugins but are dependencies for the bot framework. Thus when handling errors, plugins will catch and release while services throw to avoid an invalid system state. You can use these services in your plugin by referencing them.
 
 <details>
   <summary>Config service</summary>
