@@ -38,10 +38,12 @@ ghcr.io/au-williams/discord-bot:master
 
 ## Anatomy of the bot
 
-The bot is a framework meant to automate many code-heavy tasks working with the Discord API. You simply need to add a new JavaScript file to the `plugins` folder to add functionality. You should export one or more of these objects in that script as needed:
+The bot is a framework meant to automate many code-heavy tasks working with the Discord API. You simply need to add a new JavaScript file to the `plugins` folder to add functionality. You should export one or more of these objects in that script as needed ...
 
 <details>
   <summary>export const CronJobs</summary>
+
+  ---
 
   [Cron](https://en.wikipedia.org/wiki/Cron#CRON_expression) schedules functions to run on a pattern, such as *every 5 minutes* or *every Saturday morning at 9 AM*. The framework will automatically schedule jobs that are defined here.
 
@@ -62,22 +64,28 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   | setPattern   | `true`   | Sets the Cron expression used when scheduling the Cron job.          |
   | setRunOrder  | `false`  | Sets the order this Cron job runs with others to avoid race issues.  |
   | setTriggered | `false`  | Sets if the Cron job should run on startup and before its pattern. |
+
+  ---
 </details>
 
 <details>
   <summary>export const Interactions</summary>
-
-  Every action in Discord can be thought of as an interaction. Clicking buttons, submitting forms, sending messages, etc. When we create buttons to click or forms to submit we must give them a unique ID that Discord will provide back to us when it has been interacted with (handled in `Listeners<object>`).
 
   ```js
   export const Interactions = Object.freeze({
     ButtonComponentWave: "PLUGIN_BUTTON_COMPONENT_WAVE"
   });
   ```
+
+  Every action in Discord can be thought of as an interaction. Clicking buttons, submitting forms, sending messages, etc. When we create buttons to click or forms to submit we must give them a unique ID that Discord will send back to us when it's been interacted with. These IDs are set on components and used as keys in `Listeners<object>`. 
+
+  ---
 </details>
 
 <details>
   <summary>export const Listeners</summary>
+
+  ---
 
   Listeners are used to handle actions. The key is a Discord event or an interaction from the `Interactions<object>` variable. The value is a `Listener` object that will be executed when the key is emitted by Discord.
 
@@ -103,6 +111,8 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   | setRequiredChannelType | `false`  | Sets the channel type required for the listener to be executed.     |
   | setRequiredRoles       | `false`  | Sets the role ID(s) a user must possess one of to be authorized.    |
   | setRunOrder            | `false`  | Sets the order this listener runs with others to avoid race issues. |
+
+  ---
 </details>
 
 JavaScript files in the `services` folder operate the same as plugins but are as dependencies for the framework. Thus when handling errors, plugins will catch and release while services throw to avoid an invalid system state. You can use these services in your plugin by referencing them.
