@@ -2,9 +2,10 @@
 
 My Discord bot made with [discord.js](https://discord.js.org/) for scalable automation of local and remote tasks. [Docker image](https://github.com/au-williams/docker-discord-bot/pkgs/container/discord-bot) is built with CI using [GitHub Actions](https://github.com/au-williams/docker-discord-bot/actions). 🐋📦
 
-- [Starting the bot](#starting-the-bot)
-- [Anatomy of the bot](#anatomy-of-the-bot)
-- [Deploying the bot](#deploying-the-bot)
+- [docker-discord-bot](#docker-discord-bot)
+  - [Starting the bot](#starting-the-bot)
+  - [Anatomy of the bot](#anatomy-of-the-bot)
+  - [Deploying the bot](#deploying-the-bot)
 
 ## Starting the bot
 
@@ -12,14 +13,15 @@ My Discord bot made with [discord.js](https://discord.js.org/) for scalable auto
 
 <details>
   <summary>🛠️ config.json</summary>
-  
-  | Key                              | Value                                                                                                                     | Required |
-  | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- |
-  | `"discord_bot_client_user_id"`   | The Discord bot client ID [(how to find this)](https://support.heateor.com/discord-client-id-discord-client-secret/)      | ✔        |
-  | `"discord_bot_login_token"`      | The Discord bot login token [(how to find this)](https://docs.discordbotstudio.org/setting-up-dbs/finding-your-bot-token) | ✔        |
-  | `"discord_prefetch_channel_ids"` | The Discord channel IDs to prefetch messages for                                                                          | ✖        |
-  | `"discord_config_channel_id"`    | The Discord channel ID where state will be stored                                                                         | ✔        |
-  | `"temp_directory"`               | The directory where temporary files will be stored                                                                        | ✔        |
+
+| Key                              | Value                                                                                                                     | Required |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `"discord_bot_client_user_id"`   | The Discord bot client ID [(how to find this)](https://support.heateor.com/discord-client-id-discord-client-secret/)      | ✔        |
+| `"discord_bot_login_token"`      | The Discord bot login token [(how to find this)](https://docs.discordbotstudio.org/setting-up-dbs/finding-your-bot-token) | ✔        |
+| `"discord_prefetch_channel_ids"` | The Discord channel IDs to prefetch messages for                                                                          | ✖        |
+| `"discord_config_channel_id"`    | The Discord channel ID where state will be stored                                                                         | ✔        |
+| `"temp_directory"`               | The directory where temporary files will be stored                                                                        | ✔        |
+
 </details>
 
 This project can run from CLI with [Node.js](https://nodejs.org/en) ...
@@ -42,67 +44,82 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
 
 <details>
   <summary>📤 export const CronJobs</summary>
-  
-  ```js
-  import CronJobScheduler from "../entities/CronJobScheduler.js";
 
-  export const CronJobs = new Set([
-    new CronJobScheduler()
-      .setFunction(myFunction)
-      .setPattern("* * * * *")
-  ]);
-  ```
+---
 
-  _[Cron](https://en.wikipedia.org/wiki/Cron#CRON_expression) is a job scheduler that runs functions on an [expression](https://devhints.io/cron), like every 20 minutes or every Saturday at 9 AM. The bot framework automatically schedules the Cron jobs you create here. You can customize the Cron job with the following setters ..._
+```js
+import CronJobScheduler from "../entities/CronJobScheduler.js";
 
-  | Setters      | Required | Purpose                                                              |
-  | ------------ | -------- | -------------------------------------------------------------------- |
-  | setEnabled   | `false`  | Sets the enabled state of the Cron job (typically for debugging).    |
-  | setFunction  | `true`   | Sets the function to execute when the Cron job is running.           |
-  | setPattern   | `true`   | Sets the Cron expression used when scheduling the Cron job.          |
-  | setRunOrder  | `false`  | Sets the order this Cron job runs with others to avoid race issues.  |
-  | setTriggered | `false`  | Sets if the Cron job should run on startup and before the pattern. |
+export const CronJobs = new Set([
+  new CronJobScheduler()
+    .setFunction(myFunction)
+    .setPattern("* * * * *")
+]);
+```
+
+_[Cron](https://en.wikipedia.org/wiki/Cron#CRON_expression) is a job scheduler that runs functions on an [expression](https://devhints.io/cron), like every 20 minutes or every Saturday at 9 AM. The bot framework automatically schedules the Cron jobs you create here. You can customize the Cron job with the following setters ..._
+
+| Setters      | Required | Purpose                                                             |
+| ------------ | -------- | ------------------------------------------------------------------- |
+| setEnabled   | `false`  | Sets the enabled state of the Cron job (typically for debugging).   |
+| setFunction  | `true`   | Sets the function to execute when the Cron job is running.          |
+| setPattern   | `true`   | Sets the Cron expression used when scheduling the Cron job.         |
+| setRunOrder  | `false`  | Sets the order this Cron job runs with others to avoid race issues. |
+| setTriggered | `false`  | Sets if the Cron job should run on startup and before the pattern.  |
+
+---
+
 </details>
 
 <details>
   <summary>📤 export const Interactions</summary>
 
-  ```js
-  export const Interactions = Object.freeze({
-    ButtonComponentWave: "PLUGIN_BUTTON_COMPONENT_WAVE"
-  });
-  ```
+---
 
-  _Every action in Discord can be thought of as an interaction. Clicking buttons, submitting forms, sending messages, etc. When we create buttons to click or forms to submit we must assign them a unique ID that Discord will emit back to us when it has been interacted with. These unique IDs are set on components and used as keys in the `Listeners` object._
+```js
+export const Interactions = Object.freeze({
+  ButtonComponentWave: "PLUGIN_BUTTON_COMPONENT_WAVE"
+});
+```
+
+_Every action in Discord can be thought of as an interaction. Clicking buttons, submitting forms, sending messages, etc. When we create buttons to click or forms to submit we must assign them a unique ID that Discord will emit back to us when it has been interacted with. These unique IDs are set on components and used as keys in the `Listeners` object._
+
+---
+
 </details>
 
 <details>
   <summary>📤 export const Listeners</summary>
 
-  ```js
-  import Listener from "../entities/Listener.js";
+---
 
-  export const Listeners = Object.freeze({
-    [Interactions.ButtonComponentWave]: new Listener()
-      .setDescription("Sends the wave emoji when the button is clicked.")
-      .setFunction(onButtonComponentWave)
-  });
-  ```
+```js
+import Listener from "../entities/Listener.js";
 
-  _Listeners handle actions. The property key is a Discord event or interaction from the `Interactions` object. The value is a `Listener` object that will be executed when the key is emitted by Discord. Listeners that only set a function can use that function as the value and it will be wrapped in a Listener by the framework automatically. You can use an array to create multiple Listener values for a single key. You can customize the Listener with the following setters ..._
+export const Listeners = Object.freeze({
+  [Interactions.ButtonComponentWave]: new Listener()
+    .setDescription("Sends the wave emoji when the button is clicked.")
+    .setFunction(onButtonComponentWave)
+});
+```
 
-  | Setters                | Required | Purpose                                                             |
-  | ---------------------- | -------- | ------------------------------------------------------------------- |
-  | setBusyFunction        | `false`  | Sets the function to execute when the listener is flagged as busy.  |
-  | setDeploymentType      | `false`  | Sets the type of POST request to use when deploying to Discord.     |
-  | setDescription         | `false`  | Sets the text displayed when describing functionality to the user.  |
-  | setEnabled             | `false`  | Sets the enabled state of the listener (typically for debugging).   |
-  | setFunction            | `true`   | Sets the function to execute when the listener is authorized.       |
-  | setLockedUserFunction  | `false`  | Sets the function to execute when the listener is not authorized.   |
-  | setRequiredChannels    | `false`  | Sets the channel ID(s) required for the listener to be executed.    |
-  | setRequiredChannelType | `false`  | Sets the channel type required for the listener to be executed.     |
-  | setRequiredRoles       | `false`  | Sets the role ID(s) a user must possess one of to be authorized.    |
-  | setRunOrder            | `false`  | Sets the order this listener runs with others to avoid race issues. |
+_Listeners handle actions. The property key is a Discord event or interaction from the `Interactions` object. The value is a `Listener` object that will be executed when the key is emitted by Discord. Listeners that only set a function can use that function as the value and it will be wrapped in a Listener by the framework automatically. You can use an array to create multiple Listener values for a single key. You can customize the Listener with the following setters ..._
+
+| Setters                | Required | Purpose                                                             |
+| ---------------------- | -------- | ------------------------------------------------------------------- |
+| setBusyFunction        | `false`  | Sets the function to execute when the listener is flagged as busy.  |
+| setDeploymentType      | `false`  | Sets the type of POST request to use when deploying to Discord.     |
+| setDescription         | `false`  | Sets the text displayed when describing functionality to the user.  |
+| setEnabled             | `false`  | Sets the enabled state of the listener (typically for debugging).   |
+| setFunction            | `true`   | Sets the function to execute when the listener is authorized.       |
+| setLockedUserFunction  | `false`  | Sets the function to execute when the listener is not authorized.   |
+| setRequiredChannels    | `false`  | Sets the channel ID(s) required for the listener to be executed.    |
+| setRequiredChannelType | `false`  | Sets the channel type required for the listener to be executed.     |
+| setRequiredRoles       | `false`  | Sets the role ID(s) a user must possess one of to be authorized.    |
+| setRunOrder            | `false`  | Sets the order this listener runs with others to avoid race issues. |
+
+---
+
 </details>
 
 These are the JavaScript files in the `plugins` folder. JSON files of the same name are their config files. These plugins may have their own config files that must be updated before they can start ...
