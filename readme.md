@@ -2,6 +2,10 @@
 
 My Discord bot made with [discord.js](https://discord.js.org/) for scalable automation of local and remote tasks. [Docker image](https://github.com/au-williams/docker-discord-bot/pkgs/container/discord-bot) is built with CI using [GitHub Actions](https://github.com/au-williams/docker-discord-bot/actions). 🐋📦
 
+- [Starting the bot](#starting-the-bot)
+- [Anatomy of the bot](#anatomy-of-the-bot)
+- [Deploying the bot](#deploying-the-bot)
+
 ## Starting the bot
 
 🛑 **Required fields in the [config.json](config.json) file must be set before the bot can start!** 🛑
