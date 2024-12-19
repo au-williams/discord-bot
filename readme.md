@@ -11,7 +11,7 @@ My Discord bot made with [discord.js](https://discord.js.org/) for scalable auto
 🛑 **Required fields in the [config.json](config.json) file must be set before the bot can start!** 🛑
 
 <details>
-  <summary>config.json</summary>
+  <summary>🛠️ config.json</summary>
   
   | Key                              | Value                                                                                                                     | Required |
   | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- |
@@ -109,7 +109,7 @@ The bot is a framework meant to automate many code-heavy tasks working with the 
   ---
 </details>
 
-These are the JavaScript files currently in the `plugins` folder ...
+These are the JavaScript files currently in the `plugins` folder. They may have their own config files to set before the plugin can run ...
 
 <details>
   <summary>🧩 plugins/cat_facts_scheduler.js</summary>
