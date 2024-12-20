@@ -258,7 +258,7 @@ _This JavaScript file sends a message reply in response to a media link with its
 
 📜 [_plugins/steam_community_announcer.js_](https://github.com/au-williams/docker-discord-bot/blob/master/plugins/steam_community_announcer.js)
 
-_This JavaScript file sends [Steam](https://store.steampowered.com/) game news and updates to the announcement channel by running a Cron job that fetches the [Steamworks Web API](https://partner.steamgames.com/doc/webapi_overview)._
+_This JavaScript file sends [Steam](https://store.steampowered.com/) game news and updates to the announcement channel by running a Cron job that fetches the [Steamworks Web API](https://partner.steamgames.com/doc/webapi_overview). Descriptions and images of the announcement are sourced from its content body._
 
 🛠️ [_plugins/steam_community_announcer.json_](https://github.com/au-williams/docker-discord-bot/blob/master/plugins/steam_community_announcer.json)
 
