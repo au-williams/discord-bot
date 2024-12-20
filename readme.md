@@ -13,13 +13,23 @@ My Discord bot made with [discord.js](https://discord.js.org/) for the scalable 
 
 ---
 
-| Key                              | Value                                                                                                                     | Required |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- |
+| _Config key_                   | _Required_ | Description |
+| ------------------------------ | ---------- | ----------- |
+| _"discord_bot_admin_role_id"_  | _`true`_   |             |
+| _"discord_bot_client_user_id"_ | _`true`_   |             |
+| _"discord_bot_login_token"_    | _`true`_   |             |
+| _"discord_config_channel_id"_  | _`true`_   |             |
+| _"enable_debug_logs"_          | _`true`_   |             |
+| _"enable_message_fetch"_       | _`true`_   |             |
+| _"temp_directory"_             | _`true`_   |             |
+
+<!--
 | `"discord_bot_client_user_id"`   | The Discord bot client ID [(how to find this)](https://support.heateor.com/discord-client-id-discord-client-secret/)      | ✔        |
 | `"discord_bot_login_token"`      | The Discord bot login token [(how to find this)](https://docs.discordbotstudio.org/setting-up-dbs/finding-your-bot-token) | ✔        |
 | `"discord_prefetch_channel_ids"` | The Discord channel IDs to prefetch messages for                                                                          | ✖        |
 | `"discord_config_channel_id"`    | The Discord channel ID where state will be stored                                                                         | ✔        |
 | `"temp_directory"`               | The directory where temporary files will be stored                                                                        | ✔        |
+-->
 
 ---
 
@@ -136,11 +146,11 @@ _Note: The [catfact.ninja API](https://catfact.ninja/) has awful data sanitizati
 
 🛠️ [_plugins/cat_facts_scheduler.json_](https://github.com/au-williams/docker-discord-bot/blob/master/plugins/cat_facts_scheduler.json)
 
-| Config key                        | Required | Description     |
-| --------------------------------- | -------- | --------------- |
-| "announcement_cron_job_pattern"   | `true`   |                 |
-| "announcement_discord_channel_id" | `true`   |                 |
-| "sanitized_catfact_api_responses" | `true`   |                 |
+| Config key                        | Required | Description |
+| --------------------------------- | -------- | ----------- |
+| "announcement_cron_job_pattern"   | `true`   |             |
+| "announcement_discord_channel_id" | `true`   |             |
+| "sanitized_catfact_api_responses" | `true`   |             |
 
 <!-- (TODO: Rename sanitized_catfact_api_responses to "cat_facts") -->
 
