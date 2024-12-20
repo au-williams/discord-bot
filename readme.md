@@ -290,18 +290,62 @@ JavaScript files in the `services` folder operate the same as plugins but are de
 
 <details>
   <summary>⚙️ services/config.js</summary>
+
+---
+
+```js
+import { Config } from "../services/config.js";
+
+const config = new Config(import.meta.filename);
+```
+
+---
+
 </details>
 
 <details>
   <summary>⚙️ services/emitter.js</summary>
+
+---
+
+```js
+import { Emitter } from "./services/emitter.js";
+
+Emitter.emit({ event });
+```
+
+---
+
 </details>
 
 <details>
   <summary>⚙️ services/logger.js</summary>
+
+---
+
+```js
+import { Logger } from "../services/logger.js";
+
+const logger = new Logger(import.meta.filename);
+```
+
+---
+
 </details>
 
 <details>
   <summary>⚙️ services/messages.js</summary>
+
+---
+
+```js
+import { Messages } from "../services/messages.js";
+
+const messages = Messages.get({ channelId });
+```
+
+---
+
 </details>
 
 ## Deploying the bot
